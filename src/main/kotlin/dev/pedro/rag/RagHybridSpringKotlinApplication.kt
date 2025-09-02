@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class RagHybridSpringKotlinApplication
 
 fun main(args: Array<String>) {
-	runApplication<RagHybridSpringKotlinApplication>(*args)
+    runApplication<RagHybridSpringKotlinApplication>(*args)
 }
