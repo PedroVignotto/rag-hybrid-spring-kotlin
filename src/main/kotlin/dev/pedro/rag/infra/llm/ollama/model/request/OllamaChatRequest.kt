@@ -1,6 +1,6 @@
 package dev.pedro.rag.infra.llm.ollama.model.request
 
-internal data class OllamaChatRequest(
+data class OllamaChatRequest(
     val model: String,
     val messages: List<OllamaChatRequestMessage>,
     val stream: Boolean = false,
