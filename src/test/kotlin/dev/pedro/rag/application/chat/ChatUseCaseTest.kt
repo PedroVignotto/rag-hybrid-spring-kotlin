@@ -17,7 +17,6 @@ import kotlin.test.assertEquals
 
 @ExtendWith(MockKExtension::class)
 class ChatUseCaseTest {
-
     private val port: LlmChatPort = mockk()
     private val sut = ChatUseCase(port)
 
@@ -35,10 +34,11 @@ class ChatUseCaseTest {
 
     private fun buildChatInput() =
         ChatInput(
-            messages = listOf(
-                ChatMessage(ChatRole.SYSTEM, "be concise"),
-                ChatMessage(ChatRole.USER, "hello")
-            ),
-            params = InferenceParams(temperature = 0.1, maxTokens = 128)
+            messages =
+                listOf(
+                    ChatMessage(ChatRole.SYSTEM, "be concise"),
+                    ChatMessage(ChatRole.USER, "hello"),
+                ),
+            params = InferenceParams(temperature = 0.1, maxTokens = 128),
         )
 }
