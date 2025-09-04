@@ -15,7 +15,7 @@ data class LlmProperties(
 ) {
     data class Http(
         @field:DurationMin(seconds = 1)
-        val connectTimeout: Duration
+        val connectTimeout: Duration,
     )
 
     data class Ollama(
@@ -24,6 +24,6 @@ data class LlmProperties(
         val requestTimeout: Duration,
         @field:NotBlank
         val model: String,
-        val keepAlive: String
+        val keepAlive: String,
     )
 }
