@@ -16,7 +16,7 @@ class ChatToOllamaMapperTest {
     @Test
     fun shouldMapChatInputToOllamaChatRequest() {
         val input =
-            buildChatInput(
+            ChatInput(
                 messages =
                     listOf(
                         ChatMessage(ChatRole.SYSTEM, "S"),
@@ -46,7 +46,7 @@ class ChatToOllamaMapperTest {
                     ),
             )
 
-        val actual = ChatToOllamaMapper.toRequest(input, model = MODEL)
+        val actual = input.toOllamaChatRequest(model = MODEL)
 
         assertThat(actual).usingRecursiveComparison().isEqualTo(expected)
     }
@@ -54,7 +54,7 @@ class ChatToOllamaMapperTest {
     @Test
     fun shouldMapChatInputWithNullParamsToOllamaChatRequestWithNullOptions() {
         val input =
-            buildChatInput(
+            ChatInput(
                 messages = listOf(ChatMessage(ChatRole.USER, "Hello")),
                 params =
                     InferenceParams(
@@ -74,15 +74,10 @@ class ChatToOllamaMapperTest {
                     ),
             )
 
-        val actual = ChatToOllamaMapper.toRequest(input, model = MODEL)
+        val actual = input.toOllamaChatRequest(model = MODEL)
 
         assertThat(actual).usingRecursiveComparison().isEqualTo(expected)
     }
-
-    private fun buildChatInput(
-        messages: List<ChatMessage>,
-        params: InferenceParams,
-    ) = ChatInput(messages = messages, params = params)
 
     private fun buildOllamaChatRequest(
         messages: List<OllamaChatRequestMessage>,

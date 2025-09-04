@@ -7,32 +7,27 @@ import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatOptions
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequestMessage
 
-object ChatToOllamaMapper {
-    fun toRequest(
-        input: ChatInput,
-        model: String,
-    ): OllamaChatRequest =
-        OllamaChatRequest(
-            model = model,
-            messages = input.messages.map { it.toRequestMessage() },
-            options =
-                OllamaChatOptions(
-                    temperature = input.params.temperature,
-                    topP = input.params.topP,
-                    numPredict = input.params.maxTokens,
-                ),
-        )
+fun ChatInput.toOllamaChatRequest(model: String): OllamaChatRequest =
+    OllamaChatRequest(
+        model = model,
+        messages = this.messages.map { it.toOllamaRequestMessage() },
+        options =
+            OllamaChatOptions(
+                temperature = this.params.temperature,
+                topP = this.params.topP,
+                numPredict = this.params.maxTokens,
+            ),
+    )
 
-    private fun ChatMessage.toRequestMessage(): OllamaChatRequestMessage =
-        OllamaChatRequestMessage(
-            role = this.role.toOllamaRole(),
-            content = this.content,
-        )
+private fun ChatMessage.toOllamaRequestMessage(): OllamaChatRequestMessage =
+    OllamaChatRequestMessage(
+        role = this.role.toOllamaRole(),
+        content = this.content,
+    )
 
-    private fun ChatRole.toOllamaRole(): String =
-        when (this) {
-            ChatRole.SYSTEM -> "system"
-            ChatRole.USER -> "user"
-            ChatRole.ASSISTANT -> "assistant"
-        }
-}
+private fun ChatRole.toOllamaRole(): String =
+    when (this) {
+        ChatRole.SYSTEM -> "system"
+        ChatRole.USER -> "user"
+        ChatRole.ASSISTANT -> "assistant"
+    }
