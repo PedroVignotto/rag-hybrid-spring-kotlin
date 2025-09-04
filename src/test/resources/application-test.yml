@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: rag-hybrid-spring-kotlin-tests
+
+llm:
+  http:
+    connect-timeout: 1s
+  ollama:
+    base-url: http://localhost:11434
+    request-timeout: 2s
+    model: llama3.2:3b
+    keep-alive: 0s
