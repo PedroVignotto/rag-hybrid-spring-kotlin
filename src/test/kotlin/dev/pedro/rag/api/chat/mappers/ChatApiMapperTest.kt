@@ -14,25 +14,28 @@ import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
 class ChatApiMapperTest {
-
     @Test
     fun shouldMapApiRequestToDomain() {
-        val api = ApiChatRequest(
-            messages = listOf(
-                ApiChatMessage("SYSTEM", "S"),
-                ApiChatMessage("user", "U"),
-                ApiChatMessage("Assistant", "A")
-            ),
-            params = ApiChatParams(temperature = 0.3, topP = 0.8, maxTokens = 128)
-        )
-        val expected = ChatInput(
-            messages = listOf(
-                ChatMessage(ChatRole.SYSTEM, "S"),
-                ChatMessage(ChatRole.USER, "U"),
-                ChatMessage(ChatRole.ASSISTANT, "A")
-            ),
-            params = InferenceParams(temperature = 0.3, topP = 0.8, maxTokens = 128)
-        )
+        val api =
+            ApiChatRequest(
+                messages =
+                    listOf(
+                        ApiChatMessage("SYSTEM", "S"),
+                        ApiChatMessage("user", "U"),
+                        ApiChatMessage("Assistant", "A"),
+                    ),
+                params = ApiChatParams(temperature = 0.3, topP = 0.8, maxTokens = 128),
+            )
+        val expected =
+            ChatInput(
+                messages =
+                    listOf(
+                        ChatMessage(ChatRole.SYSTEM, "S"),
+                        ChatMessage(ChatRole.USER, "U"),
+                        ChatMessage(ChatRole.ASSISTANT, "A"),
+                    ),
+                params = InferenceParams(temperature = 0.3, topP = 0.8, maxTokens = 128),
+            )
 
         val actual = api.toDomain()
 
@@ -41,14 +44,16 @@ class ChatApiMapperTest {
 
     @Test
     fun shouldMapNullParamsToDomainParamsWithNulls() {
-        val api = ApiChatRequest(
-            messages = listOf(ApiChatMessage("user", "Hello")),
-            params = null
-        )
-        val expected = ChatInput(
-            messages = listOf(ChatMessage(ChatRole.USER, "Hello")),
-            params = InferenceParams(temperature = null, topP = null, maxTokens = null)
-        )
+        val api =
+            ApiChatRequest(
+                messages = listOf(ApiChatMessage("user", "Hello")),
+                params = null,
+            )
+        val expected =
+            ChatInput(
+                messages = listOf(ChatMessage(ChatRole.USER, "Hello")),
+                params = InferenceParams(temperature = null, topP = null, maxTokens = null),
+            )
 
         val actual = api.toDomain()
 
@@ -57,10 +62,11 @@ class ChatApiMapperTest {
 
     @Test
     fun shouldFailOnInvalidRole() {
-        val api = ApiChatRequest(
-            messages = listOf(ApiChatMessage("moderator", "hi")), // inválido
-            params = null
-        )
+        val api =
+            ApiChatRequest(
+                messages = listOf(ApiChatMessage("moderator", "hi")), // inválido
+                params = null,
+            )
 
         assertFailsWith<IllegalArgumentException> { api.toDomain() }
     }

@@ -13,13 +13,13 @@ import dev.pedro.rag.domain.chat.InferenceParams
 fun ApiChatRequest.toDomain(): ChatInput =
     ChatInput(
         messages = this.messages.map { it.toDomain() },
-        params = this.params.toDomainParams()
+        params = this.params.toDomainParams(),
     )
 
 private fun ApiChatMessage.toDomain(): ChatMessage =
     ChatMessage(
         role = this.role.toDomainRole(),
-        content = this.content
+        content = this.content,
     )
 
 private fun ApiChatParams?.toDomainParams(): InferenceParams =
@@ -29,7 +29,7 @@ private fun ApiChatParams?.toDomainParams(): InferenceParams =
         InferenceParams(
             temperature = this.temperature,
             topP = this.topP,
-            maxTokens = this.maxTokens
+            maxTokens = this.maxTokens,
         )
     }
 
@@ -41,5 +41,4 @@ private fun String.toDomainRole(): ChatRole =
         else -> throw IllegalArgumentException("Invalid role: '$this' (expected system|user|assistant)")
     }
 
-fun ChatOutput.toApi(): ApiChatResponse =
-    ApiChatResponse(content = this.content)
+fun ChatOutput.toApi(): ApiChatResponse = ApiChatResponse(content = this.content)

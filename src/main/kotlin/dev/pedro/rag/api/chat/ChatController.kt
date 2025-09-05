@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping(value = ["/v1/chat"], produces = [MediaType.APPLICATION_JSON_VALUE])
 class ChatController(private val useCase: ChatUseCase) {
-
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
-    fun post(@Valid @RequestBody req: ApiChatRequest): ApiChatResponse =
-        useCase.handle(req.toDomain()).toApi()
+    fun post(
+        @Valid @RequestBody req: ApiChatRequest,
+    ): ApiChatResponse = useCase.handle(req.toDomain()).toApi()
 }
