@@ -2,7 +2,6 @@ package dev.pedro.rag.infra.llm.ollama.client
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.databind.node.ObjectNode
 import dev.pedro.rag.config.LlmProperties
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaHttpException
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
@@ -24,16 +23,18 @@ class OllamaClient(
     private val writer = mapper.copy().setSerializationInclusion(JsonInclude.Include.NON_NULL).writer()
 
     fun chat(payload: OllamaChatRequest): OllamaChatResponse {
-        val jsonBody = serializeRequestWithKeepAlive(payload)
+        val jsonBody = buildJsonBody(payload, forceStream = null)
         val httpRequest = buildHttpRequestForChat(jsonBody)
         val httpResponse = executeHttpRequest(httpRequest)
         return parseChatResponse(httpResponse)
     }
 
-    private fun serializeRequestWithKeepAlive(payload: OllamaChatRequest): String {
-        val node: ObjectNode = mapper.valueToTree(payload)
-        node.put("keep_alive", properties.keepAlive)
-        return writer.writeValueAsString(node)
+    private fun buildJsonBody(
+        payload: OllamaChatRequest,
+        forceStream: Boolean?,
+    ): String {
+        val effective = payload.copy(keepAlive = properties.keepAlive, stream = forceStream)
+        return writer.writeValueAsString(effective)
     }
 
     private fun buildHttpRequestForChat(jsonBody: String): HttpRequest =
