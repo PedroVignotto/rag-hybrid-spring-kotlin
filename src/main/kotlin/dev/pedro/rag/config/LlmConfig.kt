@@ -18,6 +18,8 @@ class LlmConfig {
     fun httpClient(props: LlmProperties): HttpClient =
         HttpClient.newBuilder()
             .connectTimeout(props.http.connectTimeout)
+            .version(HttpClient.Version.HTTP_1_1)
+            .followRedirects(HttpClient.Redirect.NEVER)
             .build()
 
     @Bean
