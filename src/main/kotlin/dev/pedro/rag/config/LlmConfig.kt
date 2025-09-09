@@ -5,6 +5,7 @@ import dev.pedro.rag.application.chat.ChatUseCase
 import dev.pedro.rag.application.chat.ports.LlmChatPort
 import dev.pedro.rag.infra.llm.ollama.OllamaChatProvider
 import dev.pedro.rag.infra.llm.ollama.client.OllamaClient
+import dev.pedro.rag.infra.llm.ollama.support.NdjsonStreamProcessor
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -20,11 +21,20 @@ class LlmConfig {
             .build()
 
     @Bean
+    fun ndjsonStreamProcessor(mapper: ObjectMapper) = NdjsonStreamProcessor(mapper)
+
+    @Bean
     fun ollamaClient(
         http: HttpClient,
         mapper: ObjectMapper,
         props: LlmProperties,
-    ) = OllamaClient(http, mapper, props.ollama)
+        processor: NdjsonStreamProcessor,
+    ) = OllamaClient(
+        http = http,
+        mapper = mapper,
+        properties = props.ollama,
+        streamProcessor = processor,
+    )
 
     @Bean
     fun llmChatPort(
