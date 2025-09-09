@@ -1,6 +1,7 @@
 package dev.pedro.rag.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import dev.pedro.rag.api.chat.support.ChatSseBridge
 import dev.pedro.rag.application.chat.ChatUseCase
 import dev.pedro.rag.application.chat.ports.LlmChatPort
 import dev.pedro.rag.infra.llm.ollama.OllamaChatProvider
@@ -14,6 +15,7 @@ import java.net.http.HttpClient
 @Configuration
 @EnableConfigurationProperties(LlmProperties::class)
 class LlmConfig {
+
     @Bean
     fun httpClient(props: LlmProperties): HttpClient =
         HttpClient.newBuilder()
@@ -46,4 +48,8 @@ class LlmConfig {
 
     @Bean
     fun chatUseCase(port: LlmChatPort) = ChatUseCase(port)
+
+    @Bean
+    fun chatSseBridge(useCase: ChatUseCase, mapper: ObjectMapper) =
+        ChatSseBridge(useCase = useCase, mapper = mapper)
 }
