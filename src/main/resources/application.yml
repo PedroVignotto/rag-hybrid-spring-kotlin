@@ -10,3 +10,13 @@ llm:
     request-timeout: 30s
     model: ${DEFAULT_CHAT_MODEL:llama3.2:3b}
     keep-alive: 0s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: [ "health", "metrics" ]
+  endpoint:
+    health:
+      probes:
+        enabled: true
