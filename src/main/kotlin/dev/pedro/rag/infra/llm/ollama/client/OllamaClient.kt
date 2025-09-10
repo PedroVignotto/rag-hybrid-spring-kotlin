@@ -2,7 +2,7 @@ package dev.pedro.rag.infra.llm.ollama.client
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.pedro.rag.config.LlmProperties
+import dev.pedro.rag.config.llm.LlmProperties
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaHttpException
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest

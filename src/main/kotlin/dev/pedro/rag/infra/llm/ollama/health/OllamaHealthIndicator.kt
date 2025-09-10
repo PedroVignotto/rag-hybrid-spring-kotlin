@@ -1,6 +1,6 @@
 package dev.pedro.rag.infra.llm.ollama.health
 
-import dev.pedro.rag.config.LlmProperties
+import dev.pedro.rag.config.llm.LlmProperties
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import java.net.URI

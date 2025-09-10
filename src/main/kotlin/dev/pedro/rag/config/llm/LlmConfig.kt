@@ -1,4 +1,4 @@
-package dev.pedro.rag.config
+package dev.pedro.rag.config.llm
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.pedro.rag.api.chat.support.ChatSseBridge

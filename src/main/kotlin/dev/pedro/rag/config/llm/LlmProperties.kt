@@ -1,4 +1,4 @@
-package dev.pedro.rag.config
+package dev.pedro.rag.config.llm
 
 import jakarta.validation.constraints.NotBlank
 import org.hibernate.validator.constraints.time.DurationMin

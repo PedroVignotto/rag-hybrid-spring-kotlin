@@ -1,6 +1,6 @@
 package dev.pedro.rag.infra.llm.ollama.health
 
-import dev.pedro.rag.config.LlmProperties
+import dev.pedro.rag.config.llm.LlmProperties
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.SocketPolicy
