@@ -14,23 +14,26 @@ import java.util.concurrent.Executor
 class ChatSseBridge(
     private val useCase: ChatUseCase,
     private val mapper: ObjectMapper,
-    private val executor: Executor? = null
+    private val executor: Executor? = null,
 ) {
     companion object {
         private const val EV_DELTA = "delta"
         private const val EV_USAGE = "usage"
-        private const val EV_DONE  = "done"
+        private const val EV_DONE = "done"
         private const val EV_ERROR = "error"
     }
 
-    fun stream(input: ChatInput, emitter: SseEmitter) {
+    fun stream(
+        input: ChatInput,
+        emitter: SseEmitter,
+    ) {
         emitter.onTimeout { safeComplete(emitter) }
         runTask {
             try {
                 useCase.handleStream(
                     input = input,
                     onDelta = { token -> sendJson(emitter, EV_DELTA, ApiChatDeltaResponse(token)) },
-                    onUsage = { usage -> sendJson(emitter, EV_USAGE, usage.toApiStreamResponse()) }
+                    onUsage = { usage -> sendJson(emitter, EV_USAGE, usage.toApiStreamResponse()) },
                 )
                 sendJson(emitter, EV_DONE, emptyMap<String, String>())
             } catch (e: OllamaHttpException) {
@@ -43,7 +46,11 @@ class ChatSseBridge(
         }
     }
 
-    private fun sendJson(emitter: SseEmitter, event: String, payload: Any) {
+    private fun sendJson(
+        emitter: SseEmitter,
+        event: String,
+        payload: Any,
+    ) {
         try {
             val json = mapper.writeValueAsString(payload)
             emitter.send(SseEmitter.event().name(event).data(json, MediaType.APPLICATION_JSON))
@@ -52,7 +59,14 @@ class ChatSseBridge(
         }
     }
 
-    private fun safeComplete(emitter: SseEmitter) { try { emitter.complete() } catch (_: Exception) {} }
+    private fun safeComplete(emitter: SseEmitter) {
+        try {
+            emitter.complete()
+        } catch (_: Exception) {
+        }
+    }
 
-    private fun runTask(task: Runnable) { if (executor != null) executor.execute(task) else task.run() }
+    private fun runTask(task: Runnable) {
+        if (executor != null) executor.execute(task) else task.run()
+    }
 }

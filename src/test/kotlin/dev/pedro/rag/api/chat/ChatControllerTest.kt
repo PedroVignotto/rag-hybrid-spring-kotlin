@@ -16,9 +16,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
-
 class ChatControllerTest : IntegrationTest() {
-
     @Test
     fun `POST v1_chat - 200 ok end-to-end`() {
         enqueueUpstreamJson(
@@ -28,10 +26,11 @@ class ChatControllerTest : IntegrationTest() {
             ),
             status = 200,
         )
-        val req = ApiChatRequest(
-            messages = listOf(ApiChatMessage("user", "hi")),
-            params = ApiChatParams(temperature = 0.2, topP = 0.9, maxTokens = 32),
-        )
+        val req =
+            ApiChatRequest(
+                messages = listOf(ApiChatMessage("user", "hi")),
+                params = ApiChatParams(temperature = 0.2, topP = 0.9, maxTokens = 32),
+            )
 
         mvc.perform(
             post("/v1/chat")
@@ -78,24 +77,26 @@ class ChatControllerTest : IntegrationTest() {
 
     @Test
     fun `POST v1_chat_stream - 200 ok, emits delta-usage-done in order`() {
-        val ndjson = listOf(
-            """{"message":{"role":"assistant","content":"Hello"},"done":false}""",
-            """{"message":{"role":"assistant","content":" world"},"done":false}""",
-            """{"done":true,"prompt_eval_count":12,"eval_count":34,"total_duration":123456789,"load_duration":987654}"""
-        ).joinToString("\n") + "\n"
+        val ndjson =
+            listOf(
+                """{"message":{"role":"assistant","content":"Hello"},"done":false}""",
+                """{"message":{"role":"assistant","content":" world"},"done":false}""",
+                """{"done":true,"prompt_eval_count":12,"eval_count":34,"total_duration":123456789,"load_duration":987654}""",
+            ).joinToString("\n") + "\n"
         enqueueUpstream(
             MockResponse()
                 .setResponseCode(200)
                 .setHeader("Content-Type", "application/x-ndjson")
-                .setChunkedBody(ndjson, 8)
+                .setChunkedBody(ndjson, 8),
         )
 
-        val mvcResult = mvc.perform(
-            post("/v1/chat/stream")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .content(mapper.writeValueAsString(streamRequest()))
-        ).andReturn()
+        val mvcResult =
+            mvc.perform(
+                post("/v1/chat/stream")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .content(mapper.writeValueAsString(streamRequest())),
+            ).andReturn()
 
         val events = parseSse(mvcResult.response.contentAsString)
         assertThat(events.map { it.name }).containsExactly("delta", "delta", "usage", "done")
@@ -122,15 +123,16 @@ class ChatControllerTest : IntegrationTest() {
             MockResponse()
                 .setResponseCode(502)
                 .setBody("upstream bad gateway")
-                .setHeader("Content-Type", MediaType.TEXT_PLAIN_VALUE)
+                .setHeader("Content-Type", MediaType.TEXT_PLAIN_VALUE),
         )
 
-        val mvcResult = mvc.perform(
-            post("/v1/chat/stream")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.TEXT_EVENT_STREAM)
-                .content(mapper.writeValueAsString(streamRequest()))
-        ).andReturn()
+        val mvcResult =
+            mvc.perform(
+                post("/v1/chat/stream")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.TEXT_EVENT_STREAM)
+                    .content(mapper.writeValueAsString(streamRequest())),
+            ).andReturn()
 
         val events = parseSse(mvcResult.response.contentAsString)
         assertThat(events.map { it.name }).containsExactly("error")
@@ -155,6 +157,7 @@ class ChatControllerTest : IntegrationTest() {
         val out = mutableListOf<SseEvent>()
         var currentName: String? = null
         val dataBuf = StringBuilder()
+
         fun flush() {
             if (currentName != null) {
                 out += SseEvent(currentName!!, dataBuf.toString().trim())
@@ -164,9 +167,12 @@ class ChatControllerTest : IntegrationTest() {
         }
         body.lines().forEach { line ->
             when {
-                line.startsWith("event:") -> { flush(); currentName = line.removePrefix("event:").trim() }
-                line.startsWith("data:")  -> dataBuf.append(line.removePrefix("data:").trim())
-                line.isBlank()            -> { /* ignora separadores */ }
+                line.startsWith("event:") -> {
+                    flush()
+                    currentName = line.removePrefix("event:").trim()
+                }
+                line.startsWith("data:") -> dataBuf.append(line.removePrefix("data:").trim())
+                line.isBlank() -> { /* ignora separadores */ }
             }
         }
         flush()

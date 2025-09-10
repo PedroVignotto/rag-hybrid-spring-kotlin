@@ -15,7 +15,6 @@ import java.net.http.HttpClient
 @Configuration
 @EnableConfigurationProperties(LlmProperties::class)
 class LlmConfig {
-
     @Bean
     fun httpClient(props: LlmProperties): HttpClient =
         HttpClient.newBuilder()
@@ -50,6 +49,8 @@ class LlmConfig {
     fun chatUseCase(port: LlmChatPort) = ChatUseCase(port)
 
     @Bean
-    fun chatSseBridge(useCase: ChatUseCase, mapper: ObjectMapper) =
-        ChatSseBridge(useCase = useCase, mapper = mapper)
+    fun chatSseBridge(
+        useCase: ChatUseCase,
+        mapper: ObjectMapper,
+    ) = ChatSseBridge(useCase = useCase, mapper = mapper)
 }

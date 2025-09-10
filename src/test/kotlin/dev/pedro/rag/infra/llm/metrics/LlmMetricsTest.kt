@@ -10,7 +10,6 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.util.stream.Stream
 
 class LlmMetricsTest {
-
     private val registry = SimpleMeterRegistry()
     private val sut = LlmMetrics(registry)
 
@@ -44,12 +43,13 @@ class LlmMetricsTest {
             provider = PROVIDER,
             model = MODEL,
             status = status,
-            nanos = 1_000_000
+            nanos = 1_000_000,
         )
 
-        val timer = registry.find("llm.chat.latency")
-            .tags("endpoint", "complete", "provider", PROVIDER, "model", MODEL, "status", status)
-            .timer()
+        val timer =
+            registry.find("llm.chat.latency")
+                .tags("endpoint", "complete", "provider", PROVIDER, "model", MODEL, "status", status)
+                .timer()
         assertThat(timer).isNotNull
         assertThat(timer!!.count()).isGreaterThan(0)
     }
@@ -61,15 +61,17 @@ class LlmMetricsTest {
             model = MODEL,
             endpoint = "stream",
             promptTokens = 10,
-            completionTokens = 20
+            completionTokens = 20,
         )
 
-        val prompt = registry.find("llm.chat.tokens")
-            .tags("provider", PROVIDER, "model", MODEL, "endpoint", "stream", "type", "prompt")
-            .summary()
-        val completion = registry.find("llm.chat.tokens")
-            .tags("provider", PROVIDER, "model", MODEL, "endpoint", "stream", "type", "completion")
-            .summary()
+        val prompt =
+            registry.find("llm.chat.tokens")
+                .tags("provider", PROVIDER, "model", MODEL, "endpoint", "stream", "type", "prompt")
+                .summary()
+        val completion =
+            registry.find("llm.chat.tokens")
+                .tags("provider", PROVIDER, "model", MODEL, "endpoint", "stream", "type", "completion")
+                .summary()
         assertThat(prompt).isNotNull
         assertThat(completion).isNotNull
         assertThat(prompt!!.count()).isGreaterThan(0)
@@ -82,12 +84,13 @@ class LlmMetricsTest {
             provider = PROVIDER,
             model = MODEL,
             type = "OllamaHttpException",
-            upstreamStatus = "502"
+            upstreamStatus = "502",
         )
 
-        val counter = registry.find("llm.chat.errors")
-            .tags("provider", PROVIDER, "model", MODEL, "type", "OllamaHttpException", "upstream_status", "502")
-            .counter()
+        val counter =
+            registry.find("llm.chat.errors")
+                .tags("provider", PROVIDER, "model", MODEL, "type", "OllamaHttpException", "upstream_status", "502")
+                .counter()
         assertThat(counter).isNotNull
         assertThat(counter!!.count()).isGreaterThan(0.0)
     }
@@ -98,12 +101,13 @@ class LlmMetricsTest {
             provider = PROVIDER,
             model = MODEL,
             type = "IOException",
-            upstreamStatus = null
+            upstreamStatus = null,
         )
 
-        val counter = registry.find("llm.chat.errors")
-            .tags("provider", PROVIDER, "model", MODEL, "type", "IOException")
-            .counter()
+        val counter =
+            registry.find("llm.chat.errors")
+                .tags("provider", PROVIDER, "model", MODEL, "type", "IOException")
+                .counter()
         assertThat(counter).isNotNull
         assertThat(counter!!.count()).isGreaterThan(0.0)
     }
@@ -116,15 +120,17 @@ class LlmMetricsTest {
             model = MODEL,
             endpoint = "complete",
             promptTokens = token,
-            completionTokens = token
+            completionTokens = token,
         )
 
-        val prompt = registry.find("llm.chat.tokens")
-            .tags("provider", PROVIDER, "model", MODEL, "endpoint", "complete", "type", "prompt")
-            .summary()
-        val completion = registry.find("llm.chat.tokens")
-            .tags("provider", PROVIDER, "model", MODEL, "endpoint", "complete", "type", "completion")
-            .summary()
+        val prompt =
+            registry.find("llm.chat.tokens")
+                .tags("provider", PROVIDER, "model", MODEL, "endpoint", "complete", "type", "prompt")
+                .summary()
+        val completion =
+            registry.find("llm.chat.tokens")
+                .tags("provider", PROVIDER, "model", MODEL, "endpoint", "complete", "type", "completion")
+                .summary()
         assertThat(prompt).isNull()
         assertThat(completion).isNull()
     }

@@ -25,9 +25,11 @@ class ChatController(private val useCase: ChatUseCase, private val sseBridge: Ch
     @PostMapping(
         path = ["/stream"],
         consumes = [MediaType.APPLICATION_JSON_VALUE],
-        produces = [MediaType.TEXT_EVENT_STREAM_VALUE]
+        produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
     )
-    fun stream(@Valid @RequestBody body: ApiChatRequest): SseEmitter {
+    fun stream(
+        @Valid @RequestBody body: ApiChatRequest,
+    ): SseEmitter {
         val input = body.toDomain()
         val emitter = SseEmitter(0L)
         sseBridge.stream(input, emitter)
