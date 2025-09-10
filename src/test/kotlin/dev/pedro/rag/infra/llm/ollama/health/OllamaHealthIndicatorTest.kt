@@ -14,7 +14,6 @@ import java.net.http.HttpClient
 import java.time.Duration
 
 class OllamaHealthIndicatorTest {
-
     private lateinit var server: MockWebServer
     private lateinit var sut: OllamaHealthIndicator
 
@@ -56,7 +55,7 @@ class OllamaHealthIndicatorTest {
     @Test
     fun `should report DOWN when connection is interrupted (exception branch)`() {
         server.enqueue(
-            MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START)
+            MockResponse().setSocketPolicy(SocketPolicy.DISCONNECT_AT_START),
         )
 
         val health = sut.health()
@@ -74,17 +73,18 @@ class OllamaHealthIndicatorTest {
             .connectTimeout(Duration.ofSeconds(1))
             .build()
 
-    private fun baseUrlFrom(server: MockWebServer): URI =
-        URI.create(server.url("/").toString())
+    private fun baseUrlFrom(server: MockWebServer): URI = URI.create(server.url("/").toString())
 
-    private fun props(baseUrl: URI) = LlmProperties(
-        http = LlmProperties.Http(connectTimeout = Duration.ofSeconds(1)),
-        ollama = LlmProperties.Ollama(
-            baseUrl = baseUrl,
-            requestTimeout = Duration.ofSeconds(1),
-            model = "llama3.2:3b",
-            keepAlive = "0s",
-            providerTag = "ollama"
+    private fun props(baseUrl: URI) =
+        LlmProperties(
+            http = LlmProperties.Http(connectTimeout = Duration.ofSeconds(1)),
+            ollama =
+                LlmProperties.Ollama(
+                    baseUrl = baseUrl,
+                    requestTimeout = Duration.ofSeconds(1),
+                    model = "llama3.2:3b",
+                    keepAlive = "0s",
+                    providerTag = "ollama",
+                ),
         )
-    )
 }

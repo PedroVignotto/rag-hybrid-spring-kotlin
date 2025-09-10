@@ -11,9 +11,8 @@ import java.time.Duration
 
 class OllamaHealthIndicator(
     private val http: HttpClient,
-    private val props: LlmProperties
+    private val props: LlmProperties,
 ) : HealthIndicator {
-
     private companion object {
         const val TAGS_PATH: String = "/api/tags"
     }
@@ -27,26 +26,31 @@ class OllamaHealthIndicator(
         return runCatching { sendReadinessRequest(request).statusCode() }
             .fold(
                 onSuccess = { code ->
-                    if (isSuccessful(code)) buildUpHealth()
-                    else buildDownHealth(statusCode = code)
+                    if (isSuccessful(code)) {
+                        buildUpHealth()
+                    } else {
+                        buildDownHealth(statusCode = code)
+                    }
                 },
                 onFailure = { t ->
                     buildDownHealth(exception = t)
-                }
+                },
             )
     }
 
     private fun buildTagsEndpointUri(base: URI): URI = joinUri(base)
 
-    private fun buildReadinessRequest(uri: URI, timeout: Duration): HttpRequest =
+    private fun buildReadinessRequest(
+        uri: URI,
+        timeout: Duration,
+    ): HttpRequest =
         HttpRequest.newBuilder()
             .uri(uri)
             .GET()
             .timeout(timeout)
             .build()
 
-    private fun sendReadinessRequest(request: HttpRequest): HttpResponse<Void> =
-        http.send(request, HttpResponse.BodyHandlers.discarding())
+    private fun sendReadinessRequest(request: HttpRequest): HttpResponse<Void> = http.send(request, HttpResponse.BodyHandlers.discarding())
 
     private fun isSuccessful(code: Int) = code in 200..299
 
@@ -56,7 +60,10 @@ class OllamaHealthIndicator(
             .withDetail("endpoint", TAGS_PATH)
             .build()
 
-    private fun buildDownHealth(statusCode: Int? = null, exception: Throwable? = null): Health {
+    private fun buildDownHealth(
+        statusCode: Int? = null,
+        exception: Throwable? = null,
+    ): Health {
         val builder = if (exception != null) Health.down(exception) else Health.down()
         statusCode?.let { builder.withDetail("status", it) }
         return builder
