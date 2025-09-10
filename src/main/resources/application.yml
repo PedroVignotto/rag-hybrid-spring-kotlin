@@ -10,6 +10,7 @@ llm:
     request-timeout: 30s
     model: ${DEFAULT_CHAT_MODEL:llama3.2:3b}
     keep-alive: 0s
+    provider-tag: ${OLLAMA_PROVIDER_TAG:ollama}
 
 management:
   endpoints:

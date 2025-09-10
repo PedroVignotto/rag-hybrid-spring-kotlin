@@ -25,5 +25,7 @@ data class LlmProperties(
         @field:NotBlank
         val model: String,
         val keepAlive: String,
+        @field:NotBlank
+        val providerTag: String,
     )
 }
