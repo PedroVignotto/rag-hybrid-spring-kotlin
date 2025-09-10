@@ -4,12 +4,17 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import dev.pedro.rag.api.chat.support.ChatSseBridge
 import dev.pedro.rag.application.chat.ChatUseCase
 import dev.pedro.rag.application.chat.ports.LlmChatPort
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics
+import dev.pedro.rag.infra.llm.metrics.MetricsLlmChatPort
 import dev.pedro.rag.infra.llm.ollama.OllamaChatProvider
 import dev.pedro.rag.infra.llm.ollama.client.OllamaClient
 import dev.pedro.rag.infra.llm.ollama.support.NdjsonStreamProcessor
+import io.micrometer.core.instrument.MeterRegistry
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 import java.net.http.HttpClient
 
 @Configuration
@@ -40,10 +45,27 @@ class LlmConfig {
     )
 
     @Bean
-    fun llmChatPort(
+    fun llmMetrics(registry: MeterRegistry): LlmMetrics = LlmMetrics(registry)
+
+    @Bean
+    fun ollamaProvider(
         client: OllamaClient,
         props: LlmProperties,
     ): LlmChatPort = OllamaChatProvider(client, defaultModel = props.ollama.model)
+
+    @Bean
+    @Primary
+    fun llmChatPort(
+        @Qualifier("ollamaProvider") delegate: LlmChatPort,
+        metrics: LlmMetrics,
+        props: LlmProperties,
+    ): LlmChatPort =
+        MetricsLlmChatPort(
+            delegate = delegate,
+            metrics = metrics,
+            providerTag = props.ollama.providerTag,
+            modelTag = props.ollama.model,
+        )
 
     @Bean
     fun chatUseCase(port: LlmChatPort) = ChatUseCase(port)
