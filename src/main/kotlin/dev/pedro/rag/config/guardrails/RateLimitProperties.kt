@@ -12,7 +12,7 @@ data class RateLimitProperties(
     val enabled: Boolean,
     val emitHeaders: Boolean,
     val defaultRule: Rule,
-    val overrides: Map<String, Rule> = emptyMap()
+    val overrides: Map<String, Rule> = emptyMap(),
 ) {
     data class Rule(
         @field:Min(1)
@@ -20,6 +20,6 @@ data class RateLimitProperties(
         @field:Min(1)
         val refill: Int,
         @field:DurationMin(seconds = 1)
-        val period: Duration
+        val period: Duration,
     )
 }

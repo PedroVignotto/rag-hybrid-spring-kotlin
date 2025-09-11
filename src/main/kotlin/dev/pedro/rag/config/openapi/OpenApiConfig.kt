@@ -9,12 +9,13 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 @OpenAPIDefinition(
-    info = Info(
-        title = "RAG Hybrid — Chat API",
-        version = "v1",
-        description = "Endpoints de chat (sync e stream) para LLM"
-    ),
-    servers = [Server(url = "/", description = "Local")]
+    info =
+        Info(
+            title = "RAG Hybrid — Chat API",
+            version = "v1",
+            description = "Endpoints de chat (sync e stream) para LLM",
+        ),
+    servers = [Server(url = "/", description = "Local")],
 )
 @Configuration
 class OpenApiConfig {
