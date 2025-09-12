@@ -25,3 +25,21 @@ management:
 springdoc:
   swagger-ui:
     path: /docs
+
+guardrails:
+  rate-limit:
+    enabled: true
+    emit-headers: true
+    default-rule:
+      capacity: 10
+      refill: 10
+      period: 10s
+    overrides:
+      "/v1/chat":
+        capacity: 3
+        refill: 3
+        period: 30s
+      "/v1/chat/stream":
+        capacity: 3
+        refill: 3
+        period: 30s

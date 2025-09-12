@@ -10,3 +10,13 @@ llm:
     request-timeout: 2s
     model: llama3.2:3b
     keep-alive: 0s
+
+guardrails:
+  rate-limit:
+    enabled: false
+    emit-headers: false
+    default-rule:
+      capacity: 10
+      refill: 10
+      period: 10s
+    overrides: { }
