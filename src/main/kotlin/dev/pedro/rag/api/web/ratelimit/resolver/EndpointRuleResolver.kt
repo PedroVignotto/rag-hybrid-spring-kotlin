@@ -9,7 +9,7 @@ import org.springframework.web.servlet.HandlerMapping
 import org.springframework.web.util.pattern.PathPattern
 import org.springframework.web.util.pattern.PathPatternParser
 
-internal class EndpointRuleResolver(
+class EndpointRuleResolver(
     private val props: RateLimitProperties,
 ) {
     private val parser = PathPatternParser()
@@ -20,7 +20,7 @@ internal class EndpointRuleResolver(
             .filterKeys { it.indexOf('*') >= 0 }
             .map { (key, rule) -> ParsedOverridePattern(key, parser.parse(key), rule) }
 
-    internal fun resolve(req: HttpServletRequest): ResolvedEndpointRule {
+    fun resolve(req: HttpServletRequest): ResolvedEndpointRule {
         val matchedPattern = matchedPatternOf(req)
         exactOverrides[matchedPattern]?.let { rule ->
             return ResolvedEndpointRule(endpointKey = matchedPattern, rule = rule)

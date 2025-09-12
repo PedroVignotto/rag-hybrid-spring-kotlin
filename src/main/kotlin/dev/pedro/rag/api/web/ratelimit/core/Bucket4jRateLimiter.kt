@@ -7,7 +7,7 @@ import io.github.bucket4j.Bucket
 import io.github.bucket4j.TimeMeter
 import java.util.concurrent.ConcurrentHashMap
 
-internal class Bucket4jRateLimiter(
+class Bucket4jRateLimiter(
     private val timeMeter: TimeMeter = TimeMeter.SYSTEM_MILLISECONDS,
 ) : RateLimiter {
     private companion object {
