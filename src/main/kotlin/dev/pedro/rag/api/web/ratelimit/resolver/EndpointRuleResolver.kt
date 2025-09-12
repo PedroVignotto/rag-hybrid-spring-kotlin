@@ -1,4 +1,4 @@
-package dev.pedro.rag.api.web.ratelimit
+package dev.pedro.rag.api.web.ratelimit.resolver
 
 import dev.pedro.rag.api.web.ratelimit.types.ParsedOverridePattern
 import dev.pedro.rag.api.web.ratelimit.types.ResolvedEndpointRule

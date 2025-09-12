@@ -1,10 +1,10 @@
-package dev.pedro.rag.api.web.ratelimit
+package dev.pedro.rag.api.web.ratelimit.resolver
 
 import dev.pedro.rag.config.guardrails.RateLimitProperties
 import io.mockk.every
 import io.mockk.mockk
 import jakarta.servlet.http.HttpServletRequest
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.web.servlet.HandlerMapping
@@ -36,9 +36,9 @@ class EndpointRuleResolverTest {
 
         val result = sut.resolve(request)
 
-        assertThat(result.endpointKey).isEqualTo("/v1/chat/stream")
-        assertThat(result.rule.capacity).isEqualTo(3)
-        assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(30))
+        Assertions.assertThat(result.endpointKey).isEqualTo("/v1/chat/stream")
+        Assertions.assertThat(result.rule.capacity).isEqualTo(3)
+        Assertions.assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(30))
     }
 
     @Test
@@ -52,9 +52,9 @@ class EndpointRuleResolverTest {
 
         val result = sut.resolve(request)
 
-        assertThat(result.endpointKey).isEqualTo("/users/**")
-        assertThat(result.rule.capacity).isEqualTo(5)
-        assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(10))
+        Assertions.assertThat(result.endpointKey).isEqualTo("/users/**")
+        Assertions.assertThat(result.rule.capacity).isEqualTo(5)
+        Assertions.assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(10))
     }
 
     @Test
@@ -68,9 +68,9 @@ class EndpointRuleResolverTest {
 
         val result = sut.resolve(request)
 
-        assertThat(result.endpointKey).isEqualTo("/users/admin/**")
-        assertThat(result.rule.capacity).isEqualTo(1)
-        assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(1))
+        Assertions.assertThat(result.endpointKey).isEqualTo("/users/admin/**")
+        Assertions.assertThat(result.rule.capacity).isEqualTo(1)
+        Assertions.assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(1))
     }
 
     @Test
@@ -84,9 +84,9 @@ class EndpointRuleResolverTest {
 
         val result = sut.resolve(request)
 
-        assertThat(result.endpointKey).isEqualTo("/v1/embeddings")
-        assertThat(result.rule.capacity).isEqualTo(10)
-        assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(10))
+        Assertions.assertThat(result.endpointKey).isEqualTo("/v1/embeddings")
+        Assertions.assertThat(result.rule.capacity).isEqualTo(10)
+        Assertions.assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(10))
     }
 
     @Test
@@ -99,8 +99,8 @@ class EndpointRuleResolverTest {
 
         val result = sut.resolve(request)
 
-        assertThat(result.endpointKey).isEqualTo("/no/attr/here")
-        assertThat(result.rule.capacity).isEqualTo(10)
+        Assertions.assertThat(result.endpointKey).isEqualTo("/no/attr/here")
+        Assertions.assertThat(result.rule.capacity).isEqualTo(10)
     }
 
     @Test
@@ -117,8 +117,8 @@ class EndpointRuleResolverTest {
 
         val result = sut.resolve(request)
 
-        assertThat(result.endpointKey).isEqualTo("/users/**")
-        assertThat(result.rule.capacity).isEqualTo(5)
+        Assertions.assertThat(result.endpointKey).isEqualTo("/users/**")
+        Assertions.assertThat(result.rule.capacity).isEqualTo(5)
     }
 
     @Test
@@ -137,8 +137,8 @@ class EndpointRuleResolverTest {
 
         val result = sut.resolve(request)
 
-        assertThat(result.endpointKey).isEqualTo("/**")
-        assertThat(result.rule.capacity).isEqualTo(2)
+        Assertions.assertThat(result.endpointKey).isEqualTo("/**")
+        Assertions.assertThat(result.rule.capacity).isEqualTo(2)
     }
 
     @Test
@@ -157,8 +157,8 @@ class EndpointRuleResolverTest {
 
         val result = sut.resolve(request)
 
-        assertThat(result.endpointKey).isEqualTo("unknown")
-        assertThat(result.rule.capacity).isEqualTo(10)
+        Assertions.assertThat(result.endpointKey).isEqualTo("unknown")
+        Assertions.assertThat(result.rule.capacity).isEqualTo(10)
     }
 
     private fun rule(

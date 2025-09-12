@@ -1,4 +1,4 @@
-package dev.pedro.rag.api.web.ratelimit
+package dev.pedro.rag.api.web.ratelimit.resolver
 
 import jakarta.servlet.http.HttpServletRequest
 

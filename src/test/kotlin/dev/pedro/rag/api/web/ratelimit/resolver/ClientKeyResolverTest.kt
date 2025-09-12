@@ -1,9 +1,9 @@
-package dev.pedro.rag.api.web.ratelimit
+package dev.pedro.rag.api.web.ratelimit.resolver
 
 import io.mockk.every
 import io.mockk.mockk
 import jakarta.servlet.http.HttpServletRequest
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 import org.springframework.mock.web.MockHttpServletRequest
 
@@ -20,7 +20,7 @@ class ClientKeyResolverTest {
 
         val key = sut.resolve(request)
 
-        assertThat(key).isEqualTo("198.51.100.1")
+        Assertions.assertThat(key).isEqualTo("198.51.100.1")
     }
 
     @Test
@@ -32,7 +32,7 @@ class ClientKeyResolverTest {
 
         val key = sut.resolve(request)
 
-        assertThat(key).isEqualTo("192.0.2.10")
+        Assertions.assertThat(key).isEqualTo("192.0.2.10")
     }
 
     @Test
@@ -43,7 +43,7 @@ class ClientKeyResolverTest {
 
         val key = sut.resolve(request)
 
-        assertThat(key).isEqualTo("unknown")
+        Assertions.assertThat(key).isEqualTo("unknown")
     }
 
     @Test
@@ -56,7 +56,7 @@ class ClientKeyResolverTest {
 
         val key = sut.resolve(req)
 
-        assertThat(key).isEqualTo("203.0.113.9")
+        Assertions.assertThat(key).isEqualTo("203.0.113.9")
     }
 
     @Test
@@ -69,7 +69,7 @@ class ClientKeyResolverTest {
 
         val key = sut.resolve(req)
 
-        assertThat(key).isEqualTo("203.0.113.10")
+        Assertions.assertThat(key).isEqualTo("203.0.113.10")
     }
 
     @Test
@@ -82,6 +82,6 @@ class ClientKeyResolverTest {
 
         val key = sut.resolve(req)
 
-        assertThat(key).isEqualTo("2001:db8::1")
+        Assertions.assertThat(key).isEqualTo("2001:db8::1")
     }
 }
