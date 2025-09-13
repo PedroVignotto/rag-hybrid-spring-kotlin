@@ -20,7 +20,6 @@ class GuardrailsConfig(
     @param:Qualifier("rateLimitInterceptor")
     private val interceptorProvider: ObjectProvider<HandlerInterceptor>,
 ) : WebMvcConfigurer {
-
     @Bean fun clientKeyResolver() = ClientKeyResolver()
 
     @Bean fun endpointRuleResolver(props: RateLimitProperties) = EndpointRuleResolver(props)
@@ -32,7 +31,7 @@ class GuardrailsConfig(
         props: RateLimitProperties,
         clientKeyResolver: ClientKeyResolver,
         endpointRuleResolver: EndpointRuleResolver,
-        rateLimiter: RateLimiter
+        rateLimiter: RateLimiter,
     ): HandlerInterceptor = RateLimitInterceptor(props, clientKeyResolver, endpointRuleResolver, rateLimiter)
 
     override fun addInterceptors(registry: InterceptorRegistry) {

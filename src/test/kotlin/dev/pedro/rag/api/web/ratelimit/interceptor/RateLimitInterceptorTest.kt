@@ -6,8 +6,8 @@ import dev.pedro.rag.api.web.ratelimit.resolver.EndpointRuleResolver
 import dev.pedro.rag.api.web.ratelimit.types.RateLimitDecision
 import dev.pedro.rag.config.guardrails.RateLimitProperties
 import io.mockk.every
-import io.mockk.verify
 import io.mockk.mockk
+import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
@@ -26,7 +26,6 @@ import org.springframework.web.bind.annotation.RestController
 import java.time.Duration
 
 class RateLimitInterceptorTest {
-
     private lateinit var properties: RateLimitProperties
     private lateinit var clientKeyResolver: ClientKeyResolver
     private lateinit var endpointRuleResolver: EndpointRuleResolver
@@ -41,33 +40,39 @@ class RateLimitInterceptorTest {
         fun chat(): ResponseEntity<Void> = ResponseEntity.ok().build()
 
         @GetMapping("/other/{id}")
-        fun other(@PathVariable id: String): ResponseEntity<Void> = ResponseEntity.ok().build()
+        fun other(
+            @PathVariable id: String,
+        ): ResponseEntity<Void> = ResponseEntity.ok().build()
     }
 
     @BeforeEach
     fun setup() {
-        properties = RateLimitProperties(
-            enabled = true,
-            emitHeaders = true,
-            defaultRule = rule(capacity = 10, refill = 10, periodSeconds = 10),
-            overrides = mapOf(
-                "/v1/chat" to rule(capacity = 3, refill = 3, periodSeconds = 30),
-                "/v1/**"   to rule(capacity = 5, refill = 5, periodSeconds = 60)
+        properties =
+            RateLimitProperties(
+                enabled = true,
+                emitHeaders = true,
+                defaultRule = rule(capacity = 10, refill = 10, periodSeconds = 10),
+                overrides =
+                    mapOf(
+                        "/v1/chat" to rule(capacity = 3, refill = 3, periodSeconds = 30),
+                        "/v1/**" to rule(capacity = 5, refill = 5, periodSeconds = 60),
+                    ),
             )
-        )
         clientKeyResolver = ClientKeyResolver()
         endpointRuleResolver = EndpointRuleResolver(properties)
         rateLimiter = mockk()
-        interceptor = RateLimitInterceptor(
-            properties,
-            clientKeyResolver,
-            endpointRuleResolver,
-            rateLimiter
-        )
-        mvc = MockMvcBuilders
-            .standaloneSetup(DummyController())
-            .addInterceptors(interceptor)
-            .build()
+        interceptor =
+            RateLimitInterceptor(
+                properties,
+                clientKeyResolver,
+                endpointRuleResolver,
+                rateLimiter,
+            )
+        mvc =
+            MockMvcBuilders
+                .standaloneSetup(DummyController())
+                .addInterceptors(interceptor)
+                .build()
     }
 
     @Test
@@ -77,7 +82,7 @@ class RateLimitInterceptorTest {
         mvc.perform(
             post("/v1/chat")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("X-Forwarded-For", "1.2.3.4")
+                .header("X-Forwarded-For", "1.2.3.4"),
         )
             .andExpect(status().isOk)
             .andExpect(header().string("X-RateLimit-Endpoint", "/v1/chat"))
@@ -98,7 +103,7 @@ class RateLimitInterceptorTest {
         mvc.perform(
             post("/v1/chat")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("X-Forwarded-For", "9.9.9.9")
+                .header("X-Forwarded-For", "9.9.9.9"),
         )
             .andExpect(status().isTooManyRequests)
             .andExpect(header().string("Retry-After", "5"))
@@ -110,7 +115,7 @@ class RateLimitInterceptorTest {
 
         mvc.perform(
             get("/v1/other/123")
-                .header("X-Forwarded-For", "7.7.7.7")
+                .header("X-Forwarded-For", "7.7.7.7"),
         )
             .andExpect(status().isOk)
 
@@ -122,20 +127,25 @@ class RateLimitInterceptorTest {
     @Test
     fun `should bypass when disabled (do not call rate limiter)`() {
         val disabledProps = properties.copy(enabled = false)
-        val interceptorDisabled = RateLimitInterceptor(
-            disabledProps, clientKeyResolver, endpointRuleResolver, rateLimiter
-        )
-        val mvcDisabled = MockMvcBuilders
-            .standaloneSetup(DummyController())
-            .addInterceptors(interceptorDisabled)
-            .build()
+        val interceptorDisabled =
+            RateLimitInterceptor(
+                disabledProps,
+                clientKeyResolver,
+                endpointRuleResolver,
+                rateLimiter,
+            )
+        val mvcDisabled =
+            MockMvcBuilders
+                .standaloneSetup(DummyController())
+                .addInterceptors(interceptorDisabled)
+                .build()
 
         every { rateLimiter.tryConsume(any(), any(), any()) } returns RateLimitDecision(false, 5)
 
         mvcDisabled.perform(
             post("/v1/chat")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("X-Forwarded-For", "1.2.3.4")
+                .header("X-Forwarded-For", "1.2.3.4"),
         ).andExpect(status().isOk)
 
         verify(exactly = 0) { rateLimiter.tryConsume(any(), any(), any()) }
@@ -144,19 +154,24 @@ class RateLimitInterceptorTest {
     @Test
     fun `should not emit headers when emitHeaders is false`() {
         val noHeadersProps = properties.copy(emitHeaders = false)
-        val interceptorNoHeaders = RateLimitInterceptor(
-            noHeadersProps, clientKeyResolver, endpointRuleResolver, rateLimiter
-        )
-        val mvcNoHeaders = MockMvcBuilders
-            .standaloneSetup(DummyController())
-            .addInterceptors(interceptorNoHeaders)
-            .build()
+        val interceptorNoHeaders =
+            RateLimitInterceptor(
+                noHeadersProps,
+                clientKeyResolver,
+                endpointRuleResolver,
+                rateLimiter,
+            )
+        val mvcNoHeaders =
+            MockMvcBuilders
+                .standaloneSetup(DummyController())
+                .addInterceptors(interceptorNoHeaders)
+                .build()
         every { rateLimiter.tryConsume(any(), any(), any()) } returns RateLimitDecision(true, null)
 
         mvcNoHeaders.perform(
             post("/v1/chat")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("X-Forwarded-For", "5.5.5.5")
+                .header("X-Forwarded-For", "5.5.5.5"),
         )
             .andExpect(status().isOk)
             .andExpect(header().doesNotExist("X-RateLimit-Endpoint"))
@@ -174,17 +189,20 @@ class RateLimitInterceptorTest {
         mvc.perform(
             post("/v1/chat")
                 .contentType(MediaType.APPLICATION_JSON)
-                .header("X-Forwarded-For", "8.8.8.8")
+                .header("X-Forwarded-For", "8.8.8.8"),
         )
             .andExpect(status().isTooManyRequests)
             .andExpect(header().doesNotExist("Retry-After"))
             .andExpect(header().doesNotExist("X-RateLimit-Retry-After-Seconds"))
     }
 
-    private fun rule(capacity: Int, refill: Int, periodSeconds: Long) =
-        RateLimitProperties.Rule(
-            capacity = capacity,
-            refill = refill,
-            period = Duration.ofSeconds(periodSeconds)
-        )
+    private fun rule(
+        capacity: Int,
+        refill: Int,
+        periodSeconds: Long,
+    ) = RateLimitProperties.Rule(
+        capacity = capacity,
+        refill = refill,
+        period = Duration.ofSeconds(periodSeconds),
+    )
 }

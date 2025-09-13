@@ -15,26 +15,30 @@ class RateLimitInterceptor(
     private val properties: RateLimitProperties,
     private val clientKeyResolver: ClientKeyResolver,
     private val endpointRuleResolver: EndpointRuleResolver,
-    private val rateLimiter: RateLimiter
+    private val rateLimiter: RateLimiter,
 ) : HandlerInterceptor {
-
     override fun preHandle(
         request: HttpServletRequest,
         response: HttpServletResponse,
-        handler: Any
+        handler: Any,
     ): Boolean =
-        if (!properties.enabled) true else run {
-            val clientKey = clientKeyResolver.resolve(request)
-            val (endpointKey, rule) = endpointRuleResolver.resolve(request).let { it.endpointKey to it.rule }
-            rateLimiter.tryConsume(clientKey, endpointKey, rule)
-                .also { emitHeadersIfConfigured(response, clientKey, endpointKey, rule, it) }
-                .let { decision ->
-                    if (decision.allowed) true
-                    else {
-                        applyTooManyRequests(response, decision)
-                        false
+        if (!properties.enabled) {
+            true
+        } else {
+            run {
+                val clientKey = clientKeyResolver.resolve(request)
+                val (endpointKey, rule) = endpointRuleResolver.resolve(request).let { it.endpointKey to it.rule }
+                rateLimiter.tryConsume(clientKey, endpointKey, rule)
+                    .also { emitHeadersIfConfigured(response, clientKey, endpointKey, rule, it) }
+                    .let { decision ->
+                        if (decision.allowed) {
+                            true
+                        } else {
+                            applyTooManyRequests(response, decision)
+                            false
+                        }
                     }
-                }
+            }
         }
 
     private fun emitHeadersIfConfigured(
@@ -42,7 +46,7 @@ class RateLimitInterceptor(
         clientKey: String,
         endpointKey: String,
         rule: RateLimitProperties.Rule,
-        decision: RateLimitDecision
+        decision: RateLimitDecision,
     ) {
         if (!properties.emitHeaders) return
         response.setHeader("X-RateLimit-Endpoint", endpointKey)
@@ -57,7 +61,7 @@ class RateLimitInterceptor(
 
     private fun applyTooManyRequests(
         response: HttpServletResponse,
-        decision: RateLimitDecision
+        decision: RateLimitDecision,
     ) {
         response.status = HttpStatus.TOO_MANY_REQUESTS.value()
         decision.retryAfterSeconds?.let { response.setHeader(HttpHeaders.RETRY_AFTER, it.toString()) }
