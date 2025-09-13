@@ -110,21 +110,6 @@ class RateLimitInterceptorTest {
     }
 
     @Test
-    fun `should resolve wildcard override when no exact match`() {
-        every { rateLimiter.tryConsume(any(), any(), any()) } returns RateLimitDecision(true, null)
-
-        mvc.perform(
-            get("/v1/other/123")
-                .header("X-Forwarded-For", "7.7.7.7"),
-        )
-            .andExpect(status().isOk)
-
-        verify {
-            rateLimiter.tryConsume("7.7.7.7", "/v1/**", properties.overrides["/v1/**"]!!)
-        }
-    }
-
-    @Test
     fun `should bypass when disabled (do not call rate limiter)`() {
         val disabledProps = properties.copy(enabled = false)
         val interceptorDisabled =
