@@ -4,7 +4,7 @@ import dev.pedro.rag.config.guardrails.RateLimitProperties
 import io.mockk.every
 import io.mockk.mockk
 import jakarta.servlet.http.HttpServletRequest
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.web.servlet.HandlerMapping
@@ -12,158 +12,145 @@ import org.springframework.web.util.pattern.PathPatternParser
 import java.time.Duration
 
 class EndpointRuleResolverTest {
-    private val props =
-        RateLimitProperties(
-            enabled = true,
-            emitHeaders = true,
-            defaultRule = rule(10, 10, 10),
-            overrides =
-                mapOf(
-                    "/v1/chat/stream" to rule(capacity = 3, refill = 3, periodSec = 30),
-                    "/users/**" to rule(capacity = 5, refill = 5, periodSec = 10),
-                    "/users/admin/**" to rule(capacity = 1, refill = 1, periodSec = 1),
-                ),
-        )
-
     @Test
-    fun `should resolve exact override by matched pattern`() {
+    fun `should resolve exact override by matched pattern (YAML-style key with slashes)`() {
+        val sut =
+            EndpointRuleResolver(
+                props(overrides = mapOf("/v1/chat" to rule(1, 1, 30))),
+            )
         val request =
             MockHttpServletRequest().apply {
-                requestURI = "/v1/chat/stream"
-                setAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, "/v1/chat/stream")
+                requestURI = "/v1/chat"
+                setAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, "/v1/chat")
             }
-        val sut = EndpointRuleResolver(props)
 
         val result = sut.resolve(request)
 
-        Assertions.assertThat(result.endpointKey).isEqualTo("/v1/chat/stream")
-        Assertions.assertThat(result.rule.capacity).isEqualTo(3)
-        Assertions.assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(30))
+        assertThat(result.endpointKey).isEqualTo("/v1/chat")
+        assertThat(result.rule.capacity).isEqualTo(1)
+        assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(30))
     }
 
     @Test
-    fun `should resolve wildcard override when no exact override exists`() {
+    fun `should resolve exact override by requestURI when matched pattern is templated`() {
+        val sut =
+            EndpointRuleResolver(
+                props(overrides = mapOf("/users/42" to rule(2, 2, 20))),
+            )
         val request =
             MockHttpServletRequest().apply {
                 requestURI = "/users/42"
                 setAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, "/users/{id}")
             }
-        val sut = EndpointRuleResolver(props)
 
         val result = sut.resolve(request)
 
-        Assertions.assertThat(result.endpointKey).isEqualTo("/users/**")
-        Assertions.assertThat(result.rule.capacity).isEqualTo(5)
-        Assertions.assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(10))
+        assertThat(result.endpointKey).isEqualTo("/users/42")
+        assertThat(result.rule.capacity).isEqualTo(2)
+        assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(20))
     }
 
     @Test
-    fun `should pick most specific wildcard when multiple match`() {
+    fun `should resolve when overrides keys are already canonical (as in configprops)`() {
+        val sut =
+            EndpointRuleResolver(
+                props(overrides = mapOf("v1chat" to rule(1, 1, 30))),
+            )
         val request =
             MockHttpServletRequest().apply {
-                requestURI = "/users/admin/ops"
-                setAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, "/users/{segment}/{rest}")
+                requestURI = "/v1/chat"
+                setAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, "/v1/chat")
             }
-        val sut = EndpointRuleResolver(props)
 
         val result = sut.resolve(request)
 
-        Assertions.assertThat(result.endpointKey).isEqualTo("/users/admin/**")
-        Assertions.assertThat(result.rule.capacity).isEqualTo(1)
-        Assertions.assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(1))
+        assertThat(result.endpointKey).isEqualTo("/v1/chat")
+        assertThat(result.rule.capacity).isEqualTo(1)
+        assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(30))
     }
 
     @Test
     fun `should fallback to default when no override matches`() {
+        val sut =
+            EndpointRuleResolver(
+                props(defaultRule = rule(10, 10, 10), overrides = emptyMap()),
+            )
         val request =
             MockHttpServletRequest().apply {
                 requestURI = "/v1/embeddings"
                 setAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, "/v1/embeddings")
             }
-        val sut = EndpointRuleResolver(props)
 
         val result = sut.resolve(request)
 
-        Assertions.assertThat(result.endpointKey).isEqualTo("/v1/embeddings")
-        Assertions.assertThat(result.rule.capacity).isEqualTo(10)
-        Assertions.assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(10))
-    }
-
-    @Test
-    fun `should fallback to requestURI when pattern attribute is absent`() {
-        val request =
-            MockHttpServletRequest().apply {
-                requestURI = "/no/attr/here"
-            }
-        val sut = EndpointRuleResolver(props)
-
-        val result = sut.resolve(request)
-
-        Assertions.assertThat(result.endpointKey).isEqualTo("/no/attr/here")
-        Assertions.assertThat(result.rule.capacity).isEqualTo(10)
+        assertThat(result.endpointKey).isEqualTo("/v1/embeddings")
+        assertThat(result.rule.capacity).isEqualTo(10)
+        assertThat(result.rule.period).isEqualTo(Duration.ofSeconds(10))
     }
 
     @Test
     fun `should accept PathPattern attribute as matched pattern`() {
+        val sut =
+            EndpointRuleResolver(
+                props(overrides = mapOf("/v1/chat" to rule(1, 1, 30))),
+            )
         val request =
             MockHttpServletRequest().apply {
-                requestURI = "/users/777"
-                setAttribute(
-                    HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE,
-                    PathPatternParser().parse("/users/{id}"),
-                )
+                requestURI = "/v1/chat"
+                setAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE, PathPatternParser().parse("/v1/chat"))
             }
-        val sut = EndpointRuleResolver(props)
 
         val result = sut.resolve(request)
 
-        Assertions.assertThat(result.endpointKey).isEqualTo("/users/**")
-        Assertions.assertThat(result.rule.capacity).isEqualTo(5)
+        assertThat(result.endpointKey).isEqualTo("/v1/chat")
+        assertThat(result.rule.capacity).isEqualTo(1)
     }
 
     @Test
-    fun `should fallback to slash when requestURI is null for wildcard check`() {
-        val props =
-            RateLimitProperties(
-                enabled = true,
-                emitHeaders = true,
-                defaultRule = rule(10, 10, 10),
-                overrides = mapOf("/**" to rule(2, 2, 1)),
+    fun `should fallback to default with requestURI when matched pattern attribute is absent`() {
+        val sut =
+            EndpointRuleResolver(
+                props(defaultRule = rule(10, 10, 10), overrides = emptyMap()),
             )
-        val request = mockk<HttpServletRequest>()
-        every { request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) } returns "/no-override"
-        every { request.requestURI } returns null
-        val sut = EndpointRuleResolver(props)
+        val request = MockHttpServletRequest().apply { requestURI = "/no/attr/here" }
 
         val result = sut.resolve(request)
 
-        Assertions.assertThat(result.endpointKey).isEqualTo("/**")
-        Assertions.assertThat(result.rule.capacity).isEqualTo(2)
+        assertThat(result.endpointKey).isEqualTo("/no/attr/here")
+        assertThat(result.rule.capacity).isEqualTo(10)
     }
 
     @Test
-    fun `should use endpointKey unknown when both matched pattern and requestURI are absent`() {
-        val props =
-            RateLimitProperties(
-                enabled = true,
-                emitHeaders = true,
-                defaultRule = rule(10, 10, 10),
-                overrides = emptyMap(),
+    fun `should fallback to default with slash when requestURI is null`() {
+        val sut =
+            EndpointRuleResolver(
+                props(defaultRule = rule(10, 10, 10), overrides = emptyMap()),
             )
         val request = mockk<HttpServletRequest>()
         every { request.getAttribute(HandlerMapping.BEST_MATCHING_PATTERN_ATTRIBUTE) } returns null
         every { request.requestURI } returns null
-        val sut = EndpointRuleResolver(props)
 
         val result = sut.resolve(request)
 
-        Assertions.assertThat(result.endpointKey).isEqualTo("unknown")
-        Assertions.assertThat(result.rule.capacity).isEqualTo(10)
+        assertThat(result.endpointKey).isEqualTo("/")
+        assertThat(result.rule.capacity).isEqualTo(10)
     }
 
     private fun rule(
         capacity: Int,
         refill: Int,
-        periodSec: Long,
-    ) = RateLimitProperties.Rule(capacity = capacity, refill = refill, period = Duration.ofSeconds(periodSec))
+        periodSeconds: Long,
+    ) = RateLimitProperties.Rule(capacity, refill, Duration.ofSeconds(periodSeconds))
+
+    private fun props(
+        enabled: Boolean = true,
+        emitHeaders: Boolean = true,
+        defaultRule: RateLimitProperties.Rule = rule(10, 10, 10),
+        overrides: Map<String, RateLimitProperties.Rule> = emptyMap(),
+    ) = RateLimitProperties(
+        enabled = enabled,
+        emitHeaders = emitHeaders,
+        defaultRule = defaultRule,
+        overrides = overrides,
+    )
 }
