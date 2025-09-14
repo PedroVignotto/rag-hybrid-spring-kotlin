@@ -1,8 +1,7 @@
-package dev.pedro.rag.infra.retrieval
+package dev.pedro.rag.infra.retrieval.chunker
 
 import dev.pedro.rag.domain.retrieval.TextChunk
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 
@@ -11,8 +10,8 @@ class SimpleChunkerTest {
 
     @Test
     fun `should return empty list when text is blank`() {
-        assertTrue(sut.split("", chunkSize = 3, overlap = 1).isEmpty())
-        assertTrue(sut.split("   ", chunkSize = 3, overlap = 1).isEmpty())
+        Assertions.assertTrue(sut.split("", chunkSize = 3, overlap = 1).isEmpty())
+        Assertions.assertTrue(sut.split("   ", chunkSize = 3, overlap = 1).isEmpty())
     }
 
     @Test
@@ -21,7 +20,7 @@ class SimpleChunkerTest {
         val chunks: List<TextChunk> = sut.split(text, chunkSize = 3, overlap = 1)
 
         val chunkTexts = chunks.map { it.text }
-        assertEquals(listOf("ABC", "CDE", "E"), chunkTexts)
+        Assertions.assertEquals(listOf("ABC", "CDE", "E"), chunkTexts)
     }
 
     @Test
@@ -31,8 +30,8 @@ class SimpleChunkerTest {
 
         val total = chunks.size
         chunks.forEachIndexed { index, c ->
-            assertEquals(index.toString(), c.metadata[SimpleChunker.META_CHUNK_INDEX])
-            assertEquals(total.toString(), c.metadata[SimpleChunker.META_CHUNK_TOTAL])
+            Assertions.assertEquals(index.toString(), c.metadata[SimpleChunker.META_CHUNK_INDEX])
+            Assertions.assertEquals(total.toString(), c.metadata[SimpleChunker.META_CHUNK_TOTAL])
         }
     }
 
@@ -42,7 +41,7 @@ class SimpleChunkerTest {
             assertThrows<IllegalStateException> {
                 sut.split(text = "abc", chunkSize = 0, overlap = 0)
             }
-        assertTrue(exception.message!!.contains("chunkSize"))
+        Assertions.assertTrue(exception.message!!.contains("chunkSize"))
     }
 
     @Test
@@ -51,7 +50,7 @@ class SimpleChunkerTest {
             assertThrows<IllegalStateException> {
                 sut.split(text = "abc", chunkSize = 3, overlap = -1)
             }
-        assertTrue(exception.message!!.contains("overlap"))
+        Assertions.assertTrue(exception.message!!.contains("overlap"))
     }
 
     @Test
@@ -60,17 +59,17 @@ class SimpleChunkerTest {
             assertThrows<IllegalStateException> {
                 sut.split(text = "abcdef", chunkSize = 3, overlap = 3)
             }
-        assertTrue(exception.message!!.contains("overlap"))
+        Assertions.assertTrue(exception.message!!.contains("overlap"))
     }
 
     @Test
     fun `should return single chunk when text is shorter than chunkSize`() {
         val chunks = sut.split(text = "AB", chunkSize = 5, overlap = 1)
 
-        assertEquals(1, chunks.size)
-        assertEquals("AB", chunks.first().text)
-        assertEquals("0", chunks.first().metadata[SimpleChunker.META_CHUNK_INDEX])
-        assertEquals("1", chunks.first().metadata[SimpleChunker.META_CHUNK_TOTAL])
+        Assertions.assertEquals(1, chunks.size)
+        Assertions.assertEquals("AB", chunks.first().text)
+        Assertions.assertEquals("0", chunks.first().metadata[SimpleChunker.META_CHUNK_INDEX])
+        Assertions.assertEquals("1", chunks.first().metadata[SimpleChunker.META_CHUNK_TOTAL])
     }
 
     @Test
@@ -81,7 +80,7 @@ class SimpleChunkerTest {
 
         val chunks = sut.split(text, chunkSize, overlap)
 
-        assertEquals(listOf("ABC", "BCD", "CDE", "DE", "E"), chunks.map { it.text })
-        assertTrue(chunks.all { it.metadata[SimpleChunker.META_CHUNK_TOTAL] == chunks.size.toString() })
+        Assertions.assertEquals(listOf("ABC", "BCD", "CDE", "DE", "E"), chunks.map { it.text })
+        Assertions.assertTrue(chunks.all { it.metadata[SimpleChunker.META_CHUNK_TOTAL] == chunks.size.toString() })
     }
 }

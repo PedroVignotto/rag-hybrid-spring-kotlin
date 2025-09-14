@@ -1,4 +1,4 @@
-package dev.pedro.rag.infra.retrieval
+package dev.pedro.rag.infra.retrieval.chunker
 
 import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.domain.retrieval.TextChunk
