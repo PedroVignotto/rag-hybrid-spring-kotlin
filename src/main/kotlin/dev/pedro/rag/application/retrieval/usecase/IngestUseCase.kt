@@ -13,9 +13,8 @@ import dev.pedro.rag.domain.retrieval.TextChunk
 class IngestUseCase(
     private val chunker: Chunker,
     private val embedPort: EmbedPort,
-    private val vectorStorePort: VectorStorePort
+    private val vectorStorePort: VectorStorePort,
 ) {
-
     fun ingest(command: IngestCommand): IngestResult {
         validateCommand(command)
         val embeddingSpec: EmbeddingSpec = embedPort.spec()
@@ -30,7 +29,7 @@ class IngestUseCase(
         vectorStorePort.upsert(
             collection = collectionSpec,
             documentId = command.documentId,
-            items = chunksWithMetadata.zip(embeddings)
+            items = chunksWithMetadata.zip(embeddings),
         )
         return IngestResult(documentId = command.documentId, chunksIngested = chunksWithMetadata.size)
     }
@@ -43,19 +42,21 @@ class IngestUseCase(
         }
     }
 
-    private fun createChunks(command: IngestCommand): List<TextChunk> =
-        chunker.split(command.text, command.chunkSize, command.overlap)
+    private fun createChunks(command: IngestCommand): List<TextChunk> = chunker.split(command.text, command.chunkSize, command.overlap)
 
     private fun mergeBaseAndChunkMetadata(
         baseMetadata: Map<String, String>,
-        rawChunks: List<TextChunk>
+        rawChunks: List<TextChunk>,
     ): List<TextChunk> =
         rawChunks.map { chunk ->
             val merged = baseMetadata + chunk.metadata
             TextChunk(text = chunk.text, metadata = merged)
         }
 
-    private fun validateEmbeddingDimensions(vectors: List<EmbeddingVector>, spec: EmbeddingSpec) {
+    private fun validateEmbeddingDimensions(
+        vectors: List<EmbeddingVector>,
+        spec: EmbeddingSpec,
+    ) {
         val hasMismatch = vectors.any { it.dim != spec.dim }
         require(!hasMismatch) {
             "All embedding vectors must have dim=${spec.dim} (provider=${spec.provider}, model=${spec.model})."

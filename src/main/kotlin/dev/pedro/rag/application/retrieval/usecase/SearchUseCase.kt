@@ -11,7 +11,6 @@ class SearchUseCase(
     private val embedPort: EmbedPort,
     private val vectorStorePort: VectorStorePort,
 ) {
-
     fun search(
         queryText: String,
         topK: Int,
@@ -23,7 +22,10 @@ class SearchUseCase(
         return searchInStore(collectionSpec, queryVector, topK, filter)
     }
 
-    private fun validateInputs(queryText: String, topK: Int) {
+    private fun validateInputs(
+        queryText: String,
+        topK: Int,
+    ) {
         require(queryText.isNotBlank()) { "query must not be blank." }
         require(topK > 0) { "topK must be > 0." }
     }
@@ -31,8 +33,7 @@ class SearchUseCase(
     private fun toCollectionSpec(spec: EmbeddingSpec): CollectionSpec =
         CollectionSpec(provider = spec.provider, model = spec.model, dim = spec.dim)
 
-    private fun embedQueryVector(queryText: String): EmbeddingVector =
-        embedPort.embed(queryText)
+    private fun embedQueryVector(queryText: String): EmbeddingVector = embedPort.embed(queryText)
 
     private fun searchInStore(
         collectionSpec: CollectionSpec,
