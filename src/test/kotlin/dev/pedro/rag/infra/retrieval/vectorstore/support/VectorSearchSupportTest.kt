@@ -86,7 +86,7 @@ class VectorSearchSupportTest {
     @Test
     fun `sortByScoreAndStability should place entries with missing chunk_index after those with it`() {
         val withIndex = match(docId = "docA", chunkIndex = 0, score = 0.9)
-        val missingIndex = matchMissingIndex(docId = "docA", score = 0.9)
+        val missingIndex = matchMissingIndex()
 
         val sorted = sut.sortByScoreAndStability(listOf(missingIndex, withIndex))
 
@@ -140,14 +140,11 @@ class VectorSearchSupportTest {
             score = score,
         )
 
-    private fun matchMissingIndex(
-        docId: String,
-        score: Double,
-    ): SearchMatch =
+    private fun matchMissingIndex(): SearchMatch =
         SearchMatch(
-            documentId = DocumentId(docId),
+            documentId = DocumentId("docA"),
             chunk = TextChunk(text = "dummy", metadata = emptyMap()),
-            score = score,
+            score = 0.9,
         )
 
     private fun assertApprox(
