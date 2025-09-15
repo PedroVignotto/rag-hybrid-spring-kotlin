@@ -2,13 +2,12 @@ package dev.pedro.rag.application.retrieval.ports
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.junit.jupiter.api.Test
 import kotlin.math.abs
 
 abstract class EmbedPortContractTest {
-
     protected abstract fun sutFor(normalized: Boolean): EmbedPort
 
     protected open fun sut(): EmbedPort = sutFor(true)
