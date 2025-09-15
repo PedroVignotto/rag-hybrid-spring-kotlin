@@ -32,10 +32,9 @@ abstract class EmbedPortContractTest {
         assertEquals(spec.dim, v.values.size)
         assertEquals(normalized, spec.normalized)
         assertEquals(normalized, v.normalized)
-
         val sumSquares = v.values.fold(0.0) { acc, f -> acc + (f * f).toDouble() }
         if (normalized) {
-            assertApproximately(sumSquares, eps = 1e-5)
+            assertApproximately(sumSquares)
         } else {
             assertTrue(abs(sumSquares - 1.0) > 1e-3)
         }
@@ -75,7 +74,7 @@ abstract class EmbedPortContractTest {
         assertTrue(batch.all { it.dim == sut.spec().dim && it.normalized == sut.spec().normalized })
     }
 
-    private fun assertApproximately(actual: Double, eps: Double) {
-        assertTrue(abs(1.0 - actual) <= eps, "expected=$1.0 actual=$actual eps=$eps")
+    private fun assertApproximately(actual: Double) {
+        assertTrue(abs(1.0 - actual) <= 1e-5)
     }
 }
