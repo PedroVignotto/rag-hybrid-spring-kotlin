@@ -5,7 +5,7 @@ import dev.pedro.rag.api.retrieval.response.IngestResponse
 import dev.pedro.rag.api.retrieval.response.SearchMatchResponse
 import dev.pedro.rag.api.retrieval.response.SearchResponse
 import dev.pedro.rag.application.retrieval.usecase.ingest.IngestInput
-import dev.pedro.rag.application.retrieval.usecase.ingest.IngestResult
+import dev.pedro.rag.application.retrieval.usecase.ingest.IngestOutput
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.SearchMatch
 
@@ -18,7 +18,7 @@ fun IngestRequest.toInput(): IngestInput =
         overlap = overlap,
     )
 
-fun IngestResult.toResponse(): IngestResponse =
+fun IngestOutput.toResponse(): IngestResponse =
     IngestResponse(
         documentId = documentId.value,
         chunksIngested = chunksIngested,

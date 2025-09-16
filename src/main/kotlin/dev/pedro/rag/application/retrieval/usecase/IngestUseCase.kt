@@ -4,7 +4,7 @@ import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.application.retrieval.usecase.ingest.IngestInput
-import dev.pedro.rag.application.retrieval.usecase.ingest.IngestResult
+import dev.pedro.rag.application.retrieval.usecase.ingest.IngestOutput
 import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
 import dev.pedro.rag.domain.retrieval.EmbeddingVector
@@ -15,13 +15,13 @@ class IngestUseCase(
     private val embedPort: EmbedPort,
     private val vectorStorePort: VectorStorePort,
 ) {
-    fun ingest(command: IngestInput): IngestResult {
+    fun ingest(command: IngestInput): IngestOutput {
         validateCommand(command)
         val embeddingSpec: EmbeddingSpec = embedPort.spec()
         val collectionSpec = CollectionSpec(embeddingSpec.provider, embeddingSpec.model, embeddingSpec.dim)
         val rawChunks: List<TextChunk> = createChunks(command)
         if (rawChunks.isEmpty()) {
-            return IngestResult(documentId = command.documentId, chunksIngested = 0)
+            return IngestOutput(documentId = command.documentId, chunksIngested = 0)
         }
         val chunksWithMetadata = mergeBaseAndChunkMetadata(command.baseMetadata, rawChunks)
         val embeddings: List<EmbeddingVector> = embedPort.embedAll(chunksWithMetadata.map { it.text })
@@ -31,7 +31,7 @@ class IngestUseCase(
             documentId = command.documentId,
             items = chunksWithMetadata.zip(embeddings),
         )
-        return IngestResult(documentId = command.documentId, chunksIngested = chunksWithMetadata.size)
+        return IngestOutput(documentId = command.documentId, chunksIngested = chunksWithMetadata.size)
     }
 
     private fun validateCommand(command: IngestInput) {

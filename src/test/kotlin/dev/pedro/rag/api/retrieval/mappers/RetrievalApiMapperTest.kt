@@ -5,7 +5,7 @@ import dev.pedro.rag.api.retrieval.response.IngestResponse
 import dev.pedro.rag.api.retrieval.response.SearchMatchResponse
 import dev.pedro.rag.api.retrieval.response.SearchResponse
 import dev.pedro.rag.application.retrieval.usecase.ingest.IngestInput
-import dev.pedro.rag.application.retrieval.usecase.ingest.IngestResult
+import dev.pedro.rag.application.retrieval.usecase.ingest.IngestOutput
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.SearchMatch
 import dev.pedro.rag.domain.retrieval.TextChunk
@@ -38,8 +38,8 @@ class RetrievalApiMapperTest {
     }
 
     @Test
-    fun `should map IngestResult (domain) to IngestResponse (api)`() {
-        val domain = IngestResult(documentId = DocumentId("doc-xyz"), chunksIngested = 3)
+    fun `should map IngestOutput (domain) to IngestResponse (api)`() {
+        val domain = IngestOutput(documentId = DocumentId("doc-xyz"), chunksIngested = 3)
         val expected = IngestResponse(documentId = "doc-xyz", chunksIngested = 3)
 
         val actual = domain.toResponse()
