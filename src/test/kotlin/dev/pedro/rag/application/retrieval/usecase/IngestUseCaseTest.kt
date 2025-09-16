@@ -3,7 +3,7 @@ package dev.pedro.rag.application.retrieval.usecase
 import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
-import dev.pedro.rag.application.retrieval.usecase.ingest.IngestInput
+import dev.pedro.rag.application.retrieval.ingest.dto.IngestInput
 import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
