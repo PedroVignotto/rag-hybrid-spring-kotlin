@@ -1,12 +1,28 @@
 package dev.pedro.rag.infra.llm.metrics
 
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.ENDPOINT_COMPLETE
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.ENDPOINT_STREAM
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.METRIC_ACTIVE_STREAMS
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.METRIC_CHAT_ERRORS
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.METRIC_CHAT_LATENCY
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.METRIC_CHAT_TOKENS
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TAG_ENDPOINT
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TAG_TOKEN_TYPE
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TAG_TYPE
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TOKEN_TYPE_COMPLETION
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TOKEN_TYPE_PROMPT
+import dev.pedro.rag.infra.observability.MetricsCommon.STATUS_ERROR
+import dev.pedro.rag.infra.observability.MetricsCommon.STATUS_SUCCESS
+import dev.pedro.rag.infra.observability.MetricsCommon.TAG_MODEL
+import dev.pedro.rag.infra.observability.MetricsCommon.TAG_PROVIDER
+import dev.pedro.rag.infra.observability.MetricsCommon.TAG_STATUS
+import dev.pedro.rag.infra.observability.MetricsCommon.TAG_UPSTREAM_STATUS
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
-import org.junit.jupiter.params.provider.ValueSource
 import java.util.stream.Stream
 
 class LlmMetricsTest {
@@ -19,27 +35,32 @@ class LlmMetricsTest {
 
         @JvmStatic
         fun noOpTokenValues(): Stream<Arguments> = Stream.of(Arguments.of(null), Arguments.of(0L))
+
+        @JvmStatic
+        fun statuses(): Stream<Arguments> =
+            Stream.of(
+                Arguments.of(STATUS_SUCCESS),
+                Arguments.of(STATUS_ERROR),
+            )
     }
 
     @Test
     fun `should increment and decrement active_streams gauge`() {
-        val gauge = registry.find("llm.chat.active_streams").gauge()
+        val gauge = registry.find(METRIC_ACTIVE_STREAMS).gauge()
         assertThat(gauge).isNotNull
         assertThat(gauge!!.value()).isEqualTo(0.0)
 
         sut.incrementActiveStreams()
         assertThat(gauge.value()).isEqualTo(1.0)
-
         sut.decrementActiveStreams()
         assertThat(gauge.value()).isEqualTo(0.0)
     }
 
     @ParameterizedTest
-    @ValueSource(strings = ["success", "error"])
+    @MethodSource("statuses")
     fun `should record latency for statuses only`(status: String) {
-        val endpoint = "complete"
         sut.recordLatency(
-            endpoint = "complete",
+            endpoint = ENDPOINT_COMPLETE,
             provider = PROVIDER,
             model = MODEL,
             status = status,
@@ -47,8 +68,17 @@ class LlmMetricsTest {
         )
 
         val timer =
-            registry.find("llm.chat.latency")
-                .tags("endpoint", "complete", "provider", PROVIDER, "model", MODEL, "status", status)
+            registry.find(METRIC_CHAT_LATENCY)
+                .tags(
+                    TAG_ENDPOINT,
+                    ENDPOINT_COMPLETE,
+                    TAG_PROVIDER,
+                    PROVIDER,
+                    TAG_MODEL,
+                    MODEL,
+                    TAG_STATUS,
+                    status,
+                )
                 .timer()
         assertThat(timer).isNotNull
         assertThat(timer!!.count()).isGreaterThan(0)
@@ -59,18 +89,36 @@ class LlmMetricsTest {
         sut.recordTokens(
             provider = PROVIDER,
             model = MODEL,
-            endpoint = "stream",
+            endpoint = ENDPOINT_STREAM,
             promptTokens = 10,
             completionTokens = 20,
         )
 
         val prompt =
-            registry.find("llm.chat.tokens")
-                .tags("provider", PROVIDER, "model", MODEL, "endpoint", "stream", "type", "prompt")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(
+                    TAG_PROVIDER,
+                    PROVIDER,
+                    TAG_MODEL,
+                    MODEL,
+                    TAG_ENDPOINT,
+                    ENDPOINT_STREAM,
+                    TAG_TOKEN_TYPE,
+                    TOKEN_TYPE_PROMPT,
+                )
                 .summary()
         val completion =
-            registry.find("llm.chat.tokens")
-                .tags("provider", PROVIDER, "model", MODEL, "endpoint", "stream", "type", "completion")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(
+                    TAG_PROVIDER,
+                    PROVIDER,
+                    TAG_MODEL,
+                    MODEL,
+                    TAG_ENDPOINT,
+                    ENDPOINT_STREAM,
+                    TAG_TOKEN_TYPE,
+                    TOKEN_TYPE_COMPLETION,
+                )
                 .summary()
         assertThat(prompt).isNotNull
         assertThat(completion).isNotNull
@@ -88,8 +136,17 @@ class LlmMetricsTest {
         )
 
         val counter =
-            registry.find("llm.chat.errors")
-                .tags("provider", PROVIDER, "model", MODEL, "type", "OllamaHttpException", "upstream_status", "502")
+            registry.find(METRIC_CHAT_ERRORS)
+                .tags(
+                    TAG_PROVIDER,
+                    PROVIDER,
+                    TAG_MODEL,
+                    MODEL,
+                    TAG_TYPE,
+                    "OllamaHttpException",
+                    TAG_UPSTREAM_STATUS,
+                    "502",
+                )
                 .counter()
         assertThat(counter).isNotNull
         assertThat(counter!!.count()).isGreaterThan(0.0)
@@ -105,8 +162,15 @@ class LlmMetricsTest {
         )
 
         val counter =
-            registry.find("llm.chat.errors")
-                .tags("provider", PROVIDER, "model", MODEL, "type", "IOException")
+            registry.find(METRIC_CHAT_ERRORS)
+                .tags(
+                    TAG_PROVIDER,
+                    PROVIDER,
+                    TAG_MODEL,
+                    MODEL,
+                    TAG_TYPE,
+                    "IOException",
+                )
                 .counter()
         assertThat(counter).isNotNull
         assertThat(counter!!.count()).isGreaterThan(0.0)
@@ -118,20 +182,61 @@ class LlmMetricsTest {
         sut.recordTokens(
             provider = PROVIDER,
             model = MODEL,
-            endpoint = "complete",
+            endpoint = ENDPOINT_COMPLETE,
             promptTokens = token,
             completionTokens = token,
         )
 
         val prompt =
-            registry.find("llm.chat.tokens")
-                .tags("provider", PROVIDER, "model", MODEL, "endpoint", "complete", "type", "prompt")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(
+                    TAG_PROVIDER,
+                    PROVIDER,
+                    TAG_MODEL,
+                    MODEL,
+                    TAG_ENDPOINT,
+                    ENDPOINT_COMPLETE,
+                    TAG_TOKEN_TYPE,
+                    TOKEN_TYPE_PROMPT,
+                )
                 .summary()
         val completion =
-            registry.find("llm.chat.tokens")
-                .tags("provider", PROVIDER, "model", MODEL, "endpoint", "complete", "type", "completion")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(
+                    TAG_PROVIDER,
+                    PROVIDER,
+                    TAG_MODEL,
+                    MODEL,
+                    TAG_ENDPOINT,
+                    ENDPOINT_COMPLETE,
+                    TAG_TOKEN_TYPE,
+                    TOKEN_TYPE_COMPLETION,
+                )
                 .summary()
         assertThat(prompt).isNull()
         assertThat(completion).isNull()
+    }
+
+    @Test
+    fun `should accumulate token summaries counts and totals`() {
+        sut.recordTokens(PROVIDER, MODEL, ENDPOINT_STREAM, 7, 3)
+        sut.recordTokens(PROVIDER, MODEL, ENDPOINT_STREAM, 5, 0)
+
+        val prompt =
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(
+                    TAG_PROVIDER,
+                    PROVIDER,
+                    TAG_MODEL,
+                    MODEL,
+                    TAG_ENDPOINT,
+                    ENDPOINT_STREAM,
+                    TAG_TOKEN_TYPE,
+                    TOKEN_TYPE_PROMPT,
+                )
+                .summary()
+        assertThat(prompt).isNotNull
+        assertThat(prompt!!.count()).isEqualTo(2)
+        assertThat(prompt.totalAmount()).isEqualTo(12.0)
     }
 }

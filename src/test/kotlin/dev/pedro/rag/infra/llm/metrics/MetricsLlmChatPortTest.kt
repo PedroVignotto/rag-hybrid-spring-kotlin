@@ -4,6 +4,22 @@ import dev.pedro.rag.application.chat.ports.LlmChatPort
 import dev.pedro.rag.domain.chat.ChatInput
 import dev.pedro.rag.domain.chat.ChatOutput
 import dev.pedro.rag.domain.chat.ChatUsage
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.ENDPOINT_COMPLETE
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.ENDPOINT_STREAM
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.METRIC_ACTIVE_STREAMS
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.METRIC_CHAT_ERRORS
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.METRIC_CHAT_LATENCY
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.METRIC_CHAT_TOKENS
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TAG_ENDPOINT
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TAG_TOKEN_TYPE
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TAG_TYPE
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TOKEN_TYPE_COMPLETION
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TOKEN_TYPE_PROMPT
+import dev.pedro.rag.infra.observability.MetricsCommon.STATUS_ERROR
+import dev.pedro.rag.infra.observability.MetricsCommon.STATUS_SUCCESS
+import dev.pedro.rag.infra.observability.MetricsCommon.TAG_MODEL
+import dev.pedro.rag.infra.observability.MetricsCommon.TAG_PROVIDER
+import dev.pedro.rag.infra.observability.MetricsCommon.TAG_STATUS
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk
@@ -38,18 +54,18 @@ class MetricsLlmChatPortTest {
         assertThat(result.content).isEqualTo("ok")
         verify(exactly = 1) { delegate.complete(input) }
         val timer =
-            registry.find("llm.chat.latency")
-                .tags("endpoint", "complete", "provider", provider, "model", modelTag, "status", "success")
+            registry.find(METRIC_CHAT_LATENCY)
+                .tags(TAG_ENDPOINT, ENDPOINT_COMPLETE, TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_STATUS, STATUS_SUCCESS)
                 .timer()
         assertThat(timer).isNotNull
         assertThat(timer!!.count()).isGreaterThan(0)
         val tokensPrompt =
-            registry.find("llm.chat.tokens")
-                .tags("provider", provider, "model", modelTag, "endpoint", "complete", "type", "prompt")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_ENDPOINT, ENDPOINT_COMPLETE, TAG_TOKEN_TYPE, TOKEN_TYPE_PROMPT)
                 .summary()
         val tokensCompletion =
-            registry.find("llm.chat.tokens")
-                .tags("provider", provider, "model", modelTag, "endpoint", "complete", "type", "completion")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_ENDPOINT, ENDPOINT_COMPLETE, TAG_TOKEN_TYPE, TOKEN_TYPE_COMPLETION)
                 .summary()
         assertThat(tokensPrompt).isNull()
         assertThat(tokensCompletion).isNull()
@@ -64,14 +80,14 @@ class MetricsLlmChatPortTest {
         assertThatThrownBy { sut.complete(input) }.isInstanceOf(FakeUpstreamException::class.java)
         verify(exactly = 1) { delegate.complete(input) }
         val err =
-            registry.find("llm.chat.errors")
-                .tags("provider", provider, "model", modelTag, "type", "FakeUpstreamException")
+            registry.find(METRIC_CHAT_ERRORS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_TYPE, "FakeUpstreamException")
                 .counter()
         assertThat(err).isNotNull
         assertThat(err!!.count()).isGreaterThan(0.0)
         val timer =
-            registry.find("llm.chat.latency")
-                .tags("endpoint", "complete", "provider", provider, "model", modelTag, "status", "error")
+            registry.find(METRIC_CHAT_LATENCY)
+                .tags(TAG_ENDPOINT, ENDPOINT_COMPLETE, TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_STATUS, STATUS_ERROR)
                 .timer()
         assertThat(timer).isNotNull
         assertThat(timer!!.count()).isGreaterThan(0)
@@ -91,24 +107,24 @@ class MetricsLlmChatPortTest {
         sut.stream(input, {}, {})
 
         val latency =
-            registry.find("llm.chat.latency")
-                .tags("endpoint", "stream", "provider", provider, "model", modelTag, "status", "success")
+            registry.find(METRIC_CHAT_LATENCY)
+                .tags(TAG_ENDPOINT, ENDPOINT_STREAM, TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_STATUS, STATUS_SUCCESS)
                 .timer()
         assertThat(latency).isNotNull
         assertThat(latency!!.count()).isGreaterThan(0)
         val prompt =
-            registry.find("llm.chat.tokens")
-                .tags("provider", provider, "model", modelTag, "endpoint", "stream", "type", "prompt")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_ENDPOINT, ENDPOINT_STREAM, TAG_TOKEN_TYPE, TOKEN_TYPE_PROMPT)
                 .summary()
         val completion =
-            registry.find("llm.chat.tokens")
-                .tags("provider", provider, "model", modelTag, "endpoint", "stream", "type", "completion")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_ENDPOINT, ENDPOINT_STREAM, TAG_TOKEN_TYPE, TOKEN_TYPE_COMPLETION)
                 .summary()
         assertThat(prompt).isNotNull
         assertThat(completion).isNotNull
         assertThat(prompt!!.count()).isGreaterThan(0)
         assertThat(completion!!.count()).isGreaterThan(0)
-        val gauge = registry.find("llm.chat.active_streams").gauge()
+        val gauge = registry.find(METRIC_ACTIVE_STREAMS).gauge()
         assertThat(gauge).isNotNull
         assertThat(gauge!!.value()).isEqualTo(0.0)
     }
@@ -123,18 +139,18 @@ class MetricsLlmChatPortTest {
             sut.stream(input, {}, {})
         }.isInstanceOf(FakeUpstreamException::class.java)
         val err =
-            registry.find("llm.chat.errors")
-                .tags("provider", provider, "model", modelTag, "type", "FakeUpstreamException")
+            registry.find(METRIC_CHAT_ERRORS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_TYPE, "FakeUpstreamException")
                 .counter()
         assertThat(err).isNotNull
         assertThat(err!!.count()).isGreaterThan(0.0)
         val timer =
-            registry.find("llm.chat.latency")
-                .tags("endpoint", "stream", "provider", provider, "model", modelTag, "status", "error")
+            registry.find(METRIC_CHAT_LATENCY)
+                .tags(TAG_ENDPOINT, ENDPOINT_STREAM, TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_STATUS, STATUS_ERROR)
                 .timer()
         assertThat(timer).isNotNull
         assertThat(timer!!.count()).isGreaterThan(0)
-        val gauge = registry.find("llm.chat.active_streams").gauge()
+        val gauge = registry.find(METRIC_ACTIVE_STREAMS).gauge()
         assertThat(gauge).isNotNull
         assertThat(gauge!!.value()).isEqualTo(0.0)
     }
@@ -150,22 +166,22 @@ class MetricsLlmChatPortTest {
         sut.stream(input, {}, null)
 
         val latency =
-            registry.find("llm.chat.latency")
-                .tags("endpoint", "stream", "provider", provider, "model", modelTag, "status", "success")
+            registry.find(METRIC_CHAT_LATENCY)
+                .tags(TAG_ENDPOINT, ENDPOINT_STREAM, TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_STATUS, STATUS_SUCCESS)
                 .timer()
         assertThat(latency).isNotNull
         assertThat(latency!!.count()).isGreaterThan(0)
         val prompt =
-            registry.find("llm.chat.tokens")
-                .tags("provider", provider, "model", modelTag, "endpoint", "stream", "type", "prompt")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_ENDPOINT, ENDPOINT_STREAM, TAG_TOKEN_TYPE, TOKEN_TYPE_PROMPT)
                 .summary()
         val completion =
-            registry.find("llm.chat.tokens")
-                .tags("provider", provider, "model", modelTag, "endpoint", "stream", "type", "completion")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_ENDPOINT, ENDPOINT_STREAM, TAG_TOKEN_TYPE, TOKEN_TYPE_COMPLETION)
                 .summary()
         assertThat(prompt).isNull()
         assertThat(completion).isNull()
-        val gauge = registry.find("llm.chat.active_streams").gauge()
+        val gauge = registry.find(METRIC_ACTIVE_STREAMS).gauge()
         assertThat(gauge).isNotNull
         assertThat(gauge!!.value()).isEqualTo(0.0)
     }
@@ -182,28 +198,28 @@ class MetricsLlmChatPortTest {
         }.isInstanceOf(FakeUpstreamException::class.java)
 
         val err =
-            registry.find("llm.chat.errors")
-                .tags("provider", provider, "model", modelTag, "type", "FakeUpstreamException")
+            registry.find(METRIC_CHAT_ERRORS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_TYPE, "FakeUpstreamException")
                 .counter()
         assertThat(err).isNotNull
         assertThat(err!!.count()).isGreaterThan(0.0)
         val latency =
-            registry.find("llm.chat.latency")
-                .tags("endpoint", "stream", "provider", provider, "model", modelTag, "status", "error")
+            registry.find(METRIC_CHAT_LATENCY)
+                .tags(TAG_ENDPOINT, ENDPOINT_STREAM, TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_STATUS, STATUS_ERROR)
                 .timer()
         assertThat(latency).isNotNull
         assertThat(latency!!.count()).isGreaterThan(0)
         val prompt =
-            registry.find("llm.chat.tokens")
-                .tags("provider", provider, "model", modelTag, "endpoint", "stream", "type", "prompt")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_ENDPOINT, ENDPOINT_STREAM, TAG_TOKEN_TYPE, TOKEN_TYPE_PROMPT)
                 .summary()
         val completion =
-            registry.find("llm.chat.tokens")
-                .tags("provider", provider, "model", modelTag, "endpoint", "stream", "type", "completion")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_ENDPOINT, ENDPOINT_STREAM, TAG_TOKEN_TYPE, TOKEN_TYPE_COMPLETION)
                 .summary()
         assertThat(prompt).isNull()
         assertThat(completion).isNull()
-        val gauge = registry.find("llm.chat.active_streams").gauge()
+        val gauge = registry.find(METRIC_ACTIVE_STREAMS).gauge()
         assertThat(gauge).isNotNull
         assertThat(gauge!!.value()).isEqualTo(0.0)
     }
@@ -219,12 +235,12 @@ class MetricsLlmChatPortTest {
         sut.stream(input, {}, {})
 
         val prompt =
-            registry.find("llm.chat.tokens")
-                .tags("provider", provider, "model", modelTag, "endpoint", "stream", "type", "prompt")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_ENDPOINT, ENDPOINT_STREAM, TAG_TOKEN_TYPE, TOKEN_TYPE_PROMPT)
                 .summary()
         val completion =
-            registry.find("llm.chat.tokens")
-                .tags("provider", provider, "model", modelTag, "endpoint", "stream", "type", "completion")
+            registry.find(METRIC_CHAT_TOKENS)
+                .tags(TAG_PROVIDER, provider, TAG_MODEL, modelTag, TAG_ENDPOINT, ENDPOINT_STREAM, TAG_TOKEN_TYPE, TOKEN_TYPE_COMPLETION)
                 .summary()
         assertThat(prompt).isNull()
         assertThat(completion).isNull()

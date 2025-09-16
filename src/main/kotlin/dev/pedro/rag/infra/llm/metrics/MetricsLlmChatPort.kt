@@ -4,6 +4,8 @@ import dev.pedro.rag.application.chat.ports.LlmChatPort
 import dev.pedro.rag.domain.chat.ChatInput
 import dev.pedro.rag.domain.chat.ChatOutput
 import dev.pedro.rag.domain.chat.ChatUsage
+import dev.pedro.rag.infra.observability.MetricsCommon.STATUS_ERROR
+import dev.pedro.rag.infra.observability.MetricsCommon.STATUS_SUCCESS
 
 class MetricsLlmChatPort(
     private val delegate: LlmChatPort,
@@ -13,11 +15,11 @@ class MetricsLlmChatPort(
 ) : LlmChatPort {
     override fun complete(input: ChatInput): ChatOutput {
         val start = System.nanoTime()
-        var status = "success"
-        try {
-            return delegate.complete(input)
+        var status = STATUS_SUCCESS
+        return try {
+            delegate.complete(input)
         } catch (ex: Exception) {
-            status = "error"
+            status = STATUS_ERROR
             metrics.countError(
                 provider = providerTag,
                 model = modelTag,
@@ -27,7 +29,7 @@ class MetricsLlmChatPort(
             throw ex
         } finally {
             metrics.recordLatency(
-                endpoint = "complete",
+                endpoint = LlmMetrics.ENDPOINT_COMPLETE,
                 provider = providerTag,
                 model = modelTag,
                 status = status,
@@ -42,7 +44,7 @@ class MetricsLlmChatPort(
         onUsage: ((ChatUsage) -> Unit)?,
     ) {
         val start = System.nanoTime()
-        var status = "success"
+        var status = STATUS_SUCCESS
         metrics.incrementActiveStreams()
         try {
             val wrappedUsage: ((ChatUsage) -> Unit)? =
@@ -51,17 +53,16 @@ class MetricsLlmChatPort(
                         metrics.recordTokens(
                             provider = providerTag,
                             model = modelTag,
-                            endpoint = "stream",
+                            endpoint = LlmMetrics.ENDPOINT_STREAM,
                             promptTokens = usage.promptTokens?.toLong(),
                             completionTokens = usage.completionTokens?.toLong(),
                         )
                         downstream(usage)
                     }
                 }
-
             delegate.stream(input, onDelta, wrappedUsage)
         } catch (ex: Exception) {
-            status = "error"
+            status = STATUS_ERROR
             metrics.countError(
                 provider = providerTag,
                 model = modelTag,
@@ -72,7 +73,7 @@ class MetricsLlmChatPort(
         } finally {
             metrics.decrementActiveStreams()
             metrics.recordLatency(
-                endpoint = "stream",
+                endpoint = LlmMetrics.ENDPOINT_STREAM,
                 provider = providerTag,
                 model = modelTag,
                 status = status,
