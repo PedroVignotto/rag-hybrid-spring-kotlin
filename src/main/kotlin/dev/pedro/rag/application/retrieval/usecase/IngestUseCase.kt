@@ -4,7 +4,7 @@ import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestInput
-import dev.pedro.rag.application.retrieval.usecase.ingest.IngestOutput
+import dev.pedro.rag.application.retrieval.ingest.dto.IngestOutput
 import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
 import dev.pedro.rag.domain.retrieval.EmbeddingVector
