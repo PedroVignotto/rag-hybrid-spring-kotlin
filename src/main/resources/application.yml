@@ -12,6 +12,13 @@ llm:
     keep-alive: 0s
     provider-tag: ${OLLAMA_PROVIDER_TAG:ollama}
 
+retrieval:
+  embedding:
+    provider: fake
+    model: fake-v1
+    dimension: 16
+    normalized: true
+
 management:
   endpoints:
     web:
