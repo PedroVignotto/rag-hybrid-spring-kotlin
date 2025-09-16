@@ -1,10 +1,10 @@
 package dev.pedro.rag.api.retrieval.response
 
 data class SearchResponse(
-    val matches: List<SearchMatchView>,
+    val matches: List<SearchMatchResponse>,
 )
 
-data class SearchMatchView(
+data class SearchMatchResponse(
     val documentId: String,
     val text: String,
     val score: Double,
