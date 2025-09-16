@@ -5,7 +5,7 @@ import dev.pedro.rag.application.retrieval.ingest.dto.IngestOutput
 import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
-import dev.pedro.rag.domain.retrieval.CollectionSpec
+import dev.pedro.rag.domain.retrieval.CollectionSpec.Companion.fromSpec
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
 import dev.pedro.rag.domain.retrieval.EmbeddingVector
 import dev.pedro.rag.domain.retrieval.TextChunk
@@ -18,7 +18,7 @@ class DefaultIngestUseCase(
     override fun ingest(input: IngestInput): IngestOutput {
         validateInput(input)
         val embeddingSpec: EmbeddingSpec = embedPort.spec()
-        val collectionSpec = CollectionSpec(embeddingSpec.provider, embeddingSpec.model, embeddingSpec.dim)
+        val collectionSpec = fromSpec(embeddingSpec)
         val rawChunks: List<TextChunk> = createChunks(input)
         if (rawChunks.isEmpty()) {
             return IngestOutput(documentId = input.documentId, chunksIngested = 0)
