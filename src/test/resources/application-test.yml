@@ -18,6 +18,13 @@ llm:
     keep-alive: 0s
     provider-tag: ollama
 
+retrieval:
+  embedding:
+    provider: fake
+    model: fake-v1
+    dimension: 16
+    normalized: true
+
 guardrails:
   rate-limit:
     enabled: false
