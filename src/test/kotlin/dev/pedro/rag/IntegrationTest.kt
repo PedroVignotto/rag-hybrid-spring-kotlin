@@ -14,49 +14,59 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
 import org.springframework.test.web.servlet.MockMvc
+import java.util.concurrent.atomic.AtomicBoolean
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 abstract class IntegrationTest {
-    companion object {
-        private val server = MockWebServer()
 
-        @JvmStatic @BeforeAll
+    companion object {
+        private val started = AtomicBoolean(false)
+        private lateinit var server: MockWebServer
+
+        @JvmStatic
+        @BeforeAll
         fun startUpstream() {
-            server.start(18081)
+            if (started.compareAndSet(false, true)) {
+                server = MockWebServer().apply { start(18081) }
+            }
         }
 
-        @JvmStatic @AfterAll
+        @JvmStatic
+        @AfterAll
         fun stopUpstream() {
-            server.shutdown()
+            if (started.compareAndSet(true, false)) {
+                server.shutdown()
+            }
         }
 
         @JvmStatic
         @DynamicPropertySource
-        fun overrideProps(reg: DynamicPropertyRegistry) {
-            reg.add("llm.ollama.base-url") { "http://localhost:18081/" }
+        fun overrideProps(registry: DynamicPropertyRegistry) {
+            registry.add("llm.ollama.base-url") { "http://localhost:18081/" }
         }
     }
 
-    @Autowired protected lateinit var mvc: MockMvc
+    @Autowired
+    protected lateinit var mvc: MockMvc
 
-    @Autowired protected lateinit var mapper: ObjectMapper
+    @Autowired
+    protected lateinit var mapper: ObjectMapper
 
-    protected fun enqueueUpstreamJson(
-        body: Any,
-        status: Int = 200,
-    ) {
+    protected fun enqueueUpstreamJson(body: Any, status: Int = 200) {
         val json = mapper.writeValueAsString(body)
         enqueueUpstream(
-            MockResponse().setResponseCode(status).setBody(json)
+            MockResponse()
+                .setResponseCode(status)
+                .setBody(json)
                 .setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE),
         )
     }
 
     protected fun enqueueUpstream(response: MockResponse) {
-        Companion.server.enqueue(response)
+        server.enqueue(response)
     }
 
-    protected fun takeUpstreamRequest(): RecordedRequest = Companion.server.takeRequest()
+    protected fun takeUpstreamRequest(): RecordedRequest = server.takeRequest()
 }
