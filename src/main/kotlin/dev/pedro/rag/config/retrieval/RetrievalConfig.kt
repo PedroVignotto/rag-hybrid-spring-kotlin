@@ -3,12 +3,15 @@ package dev.pedro.rag.config.retrieval
 import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
+import dev.pedro.rag.application.retrieval.usecase.DefaultIngestUseCase
 import dev.pedro.rag.application.retrieval.usecase.IngestUseCase
 import dev.pedro.rag.application.retrieval.usecase.SearchUseCase
 import dev.pedro.rag.infra.retrieval.chunker.SimpleChunker
 import dev.pedro.rag.infra.retrieval.vectorstore.memory.InMemoryVectorStore
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 
 @Configuration
 class RetrievalConfig {
@@ -18,17 +21,23 @@ class RetrievalConfig {
     @Bean
     fun vectorStorePort(): VectorStorePort = InMemoryVectorStore()
 
-    @Bean
-    fun ingestUseCase(
+    @Bean("ingestUseCaseCore")
+    fun ingestUseCaseCore(
         chunker: Chunker,
         embedPort: EmbedPort,
         vectorStorePort: VectorStorePort,
     ): IngestUseCase =
-        IngestUseCase(
+        DefaultIngestUseCase(
             chunker = chunker,
             embedPort = embedPort,
             vectorStorePort = vectorStorePort,
         )
+
+    @Bean
+    @Primary
+    fun ingestUseCase(
+        @Qualifier("ingestUseCaseCore") core: IngestUseCase,
+    ): IngestUseCase = core
 
     @Bean
     fun searchUseCase(

@@ -1,9 +1,9 @@
 package dev.pedro.rag.application.retrieval.usecase
 
+import dev.pedro.rag.application.retrieval.ingest.dto.IngestInput
 import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
-import dev.pedro.rag.application.retrieval.ingest.dto.IngestInput
 import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
@@ -31,18 +31,18 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
 @ExtendWith(MockKExtension::class)
-class IngestUseCaseTest(
+class DefaultIngestUseCaseTest(
     @param:MockK private val chunker: Chunker,
     @param:MockK private val embedPort: EmbedPort,
     @param:MockK private val vectorStorePort: VectorStorePort,
 ) {
     @InjectMockKs
-    private lateinit var sut: IngestUseCase
+    private lateinit var sut: DefaultIngestUseCase
     private lateinit var defaultSpec: EmbeddingSpec
 
     companion object {
         @JvmStatic
-        fun invalidCommands(): List<Named<Executable>> {
+        fun invalidInputs(): List<Named<Executable>> {
             fun named(
                 name: String,
                 block: () -> Unit,
@@ -57,16 +57,16 @@ class IngestUseCaseTest(
                 )
             return listOf(
                 named("blank text") {
-                    IngestUseCase(mockk(), mockk(), mockk()).ingest(base.copy(text = "   "))
+                    DefaultIngestUseCase(mockk(), mockk(), mockk()).ingest(base.copy(text = "   "))
                 },
                 named("chunkSize <= 0") {
-                    IngestUseCase(mockk(), mockk(), mockk()).ingest(base.copy(chunkSize = 0))
+                    DefaultIngestUseCase(mockk(), mockk(), mockk()).ingest(base.copy(chunkSize = 0))
                 },
                 named("overlap < 0") {
-                    IngestUseCase(mockk(), mockk(), mockk()).ingest(base.copy(overlap = -1))
+                    DefaultIngestUseCase(mockk(), mockk(), mockk()).ingest(base.copy(overlap = -1))
                 },
                 named("overlap >= chunkSize") {
-                    IngestUseCase(mockk(), mockk(), mockk()).ingest(base.copy(chunkSize = 5, overlap = 5))
+                    DefaultIngestUseCase(mockk(), mockk(), mockk()).ingest(base.copy(chunkSize = 5, overlap = 5))
                 },
             )
         }
@@ -80,8 +80,8 @@ class IngestUseCaseTest(
 
     @Test
     fun `should chunk, embed and upsert with chunk metadata precedence`() {
-        val command =
-            validCommand(
+        val input =
+            input(
                 documentId = "doc-1",
                 text = "ABCDEFGHIJ",
                 baseMetadata = mapOf("location" to "hq", "chunk_index" to "999"),
@@ -95,7 +95,7 @@ class IngestUseCaseTest(
                 chunk("GHIJ", idx = 2, total = 4),
                 chunk("J", idx = 3, total = 4),
             )
-        every { chunker.split(command.text, command.chunkSize, command.overlap) } returns producedChunks
+        every { chunker.split(input.text, input.chunkSize, input.overlap) } returns producedChunks
         every { embedPort.embedAll(any()) } answers {
             firstArg<List<String>>().map {
                 EmbeddingVector(values = floatArrayOf(1f, 0f, 0f), dim = defaultSpec.dim, normalized = true)
@@ -106,7 +106,7 @@ class IngestUseCaseTest(
         val itemsSlot: CapturingSlot<List<Pair<TextChunk, EmbeddingVector>>> = slot()
         every { vectorStorePort.upsert(capture(collectionSlot), capture(documentIdSlot), capture(itemsSlot)) } just Runs
 
-        val result = sut.ingest(command)
+        val result = sut.ingest(input)
 
         assertEquals("doc-1", result.documentId.value)
         assertEquals(4, result.chunksIngested)
@@ -117,17 +117,17 @@ class IngestUseCaseTest(
         assertEquals("4", first.metadata["chunk_total"])
         assertEquals("hq", first.metadata["location"])
         assertTrue(itemsSlot.captured.all { it.second.dim == 3 })
-        verify(exactly = 1) { chunker.split(command.text, command.chunkSize, command.overlap) }
+        verify(exactly = 1) { chunker.split(input.text, input.chunkSize, input.overlap) }
         verify(exactly = 1) { embedPort.embedAll(listOf("ABCDE", "DEFGH", "GHIJ", "J")) }
         verify(exactly = 1) { vectorStorePort.upsert(any(), any(), any()) }
     }
 
     @Test
     fun `should return zero when chunker yields no chunks and must not call embed or upsert`() {
-        val command = validCommand(text = "abc", chunkSize = 10, overlap = 0)
-        every { chunker.split(command.text, command.chunkSize, command.overlap) } returns emptyList()
+        val input = input(text = "abc", chunkSize = 10, overlap = 0)
+        every { chunker.split(input.text, input.chunkSize, input.overlap) } returns emptyList()
 
-        val result = sut.ingest(command)
+        val result = sut.ingest(input)
 
         assertEquals("doc-valid", result.documentId.value)
         assertEquals(0, result.chunksIngested)
@@ -138,24 +138,24 @@ class IngestUseCaseTest(
 
     @Test
     fun `should fail when any embedding vector has wrong dimension`() {
-        val command = validCommand(text = "123456", chunkSize = 6, overlap = 0)
+        val input = input(text = "123456", chunkSize = 6, overlap = 0)
         every { chunker.split(any(), any(), any()) } returns listOf(chunk("123456", 0, 1))
         every { embedPort.embedAll(any()) } returns
             listOf(
                 EmbeddingVector(values = floatArrayOf(1f, 2f), dim = 2, normalized = true),
             )
 
-        assertThrows(IllegalArgumentException::class.java) { sut.ingest(command) }
+        assertThrows(IllegalArgumentException::class.java) { sut.ingest(input) }
         verify(exactly = 0) { vectorStorePort.upsert(any(), any(), any()) }
     }
 
     @ParameterizedTest(name = "{index} => {0}")
-    @MethodSource("invalidCommands")
-    fun `should validate command parameters`(exec: Executable) {
+    @MethodSource("invalidInputs")
+    fun `should validate input parameters`(exec: Executable) {
         assertThrows(IllegalArgumentException::class.java, exec)
     }
 
-    private fun validCommand(
+    private fun input(
         documentId: String = "doc-valid",
         text: String = "ABCDEFGHIJ",
         baseMetadata: Map<String, String> = emptyMap(),
