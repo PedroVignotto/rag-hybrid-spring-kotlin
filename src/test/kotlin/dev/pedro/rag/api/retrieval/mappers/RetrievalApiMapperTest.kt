@@ -4,6 +4,7 @@ import dev.pedro.rag.api.retrieval.request.IngestRequest
 import dev.pedro.rag.api.retrieval.response.IngestResponse
 import dev.pedro.rag.api.retrieval.response.SearchMatchResponse
 import dev.pedro.rag.api.retrieval.response.SearchResponse
+import dev.pedro.rag.application.retrieval.usecase.ingest.IngestInput
 import dev.pedro.rag.application.retrieval.usecase.ingest.IngestResult
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.SearchMatch
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.Test
 
 class RetrievalApiMapperTest {
     @Test
-    fun `should map IngestRequest to IngestCommand with null metadata as empty map`() {
+    fun `should map IngestRequest to IngestInput with null metadata as empty map`() {
         val api =
             IngestRequest(
                 documentId = "doc-1",
@@ -23,7 +24,7 @@ class RetrievalApiMapperTest {
                 overlap = 120,
             )
         val expected =
-            dev.pedro.rag.application.retrieval.usecase.ingest.IngestCommand(
+            IngestInput(
                 documentId = DocumentId("doc-1"),
                 text = "hello world",
                 baseMetadata = emptyMap(),
@@ -31,7 +32,7 @@ class RetrievalApiMapperTest {
                 overlap = 120,
             )
 
-        val actual = api.toCommand()
+        val actual = api.toInput()
 
         assertThat(actual).usingRecursiveComparison().isEqualTo(expected)
     }

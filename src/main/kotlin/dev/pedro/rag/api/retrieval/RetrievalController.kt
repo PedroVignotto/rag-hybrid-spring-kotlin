@@ -1,6 +1,6 @@
 package dev.pedro.rag.api.retrieval
 
-import dev.pedro.rag.api.retrieval.mappers.toCommand
+import dev.pedro.rag.api.retrieval.mappers.toInput
 import dev.pedro.rag.api.retrieval.mappers.toResponse
 import dev.pedro.rag.api.retrieval.request.IngestRequest
 import dev.pedro.rag.api.retrieval.request.SearchRequest
@@ -33,7 +33,7 @@ class RetrievalController(
     )
     fun ingest(
         @RequestBody @Valid request: IngestRequest,
-    ): IngestResponse = ingestUseCase.ingest(request.toCommand()).toResponse()
+    ): IngestResponse = ingestUseCase.ingest(request.toInput()).toResponse()
 
     @PostMapping("/search", consumes = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(

@@ -3,7 +3,7 @@ package dev.pedro.rag.application.retrieval.usecase
 import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
-import dev.pedro.rag.application.retrieval.usecase.ingest.IngestCommand
+import dev.pedro.rag.application.retrieval.usecase.ingest.IngestInput
 import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
@@ -48,7 +48,7 @@ class IngestUseCaseTest(
                 block: () -> Unit,
             ) = Named.of(name, Executable { block() })
             val base =
-                IngestCommand(
+                IngestInput(
                     documentId = DocumentId("doc-invalid"),
                     text = "abc",
                     baseMetadata = emptyMap(),
@@ -161,7 +161,7 @@ class IngestUseCaseTest(
         baseMetadata: Map<String, String> = emptyMap(),
         chunkSize: Int = 5,
         overlap: Int = 2,
-    ) = IngestCommand(
+    ) = IngestInput(
         documentId = DocumentId(documentId),
         text = text,
         baseMetadata = baseMetadata,
