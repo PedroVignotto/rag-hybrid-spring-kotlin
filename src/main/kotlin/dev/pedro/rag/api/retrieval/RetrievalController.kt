@@ -6,7 +6,7 @@ import dev.pedro.rag.api.retrieval.request.IngestRequest
 import dev.pedro.rag.api.retrieval.request.SearchRequest
 import dev.pedro.rag.api.retrieval.response.IngestResponse
 import dev.pedro.rag.api.retrieval.response.SearchResponse
-import dev.pedro.rag.application.retrieval.usecase.IngestUseCase
+import dev.pedro.rag.application.retrieval.ingest.usecase.IngestUseCase
 import dev.pedro.rag.application.retrieval.usecase.SearchUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag

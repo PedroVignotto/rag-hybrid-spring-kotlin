@@ -1,6 +1,7 @@
 package dev.pedro.rag.application.retrieval.usecase
 
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestInput
+import dev.pedro.rag.application.retrieval.ingest.usecase.DefaultIngestUseCase
 import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
