@@ -1,4 +1,4 @@
-package dev.pedro.rag.application.chat
+package dev.pedro.rag.application.chat.usecase
 
 import dev.pedro.rag.application.chat.ports.LlmChatPort
 import dev.pedro.rag.domain.chat.ChatInput
@@ -16,9 +16,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 @ExtendWith(MockKExtension::class)
-class ChatUseCaseTest {
+class DefaultChatUseCaseTest {
     private val port: LlmChatPort = mockk()
-    private val sut = ChatUseCase(port)
+    private val sut = DefaultChatUseCase(port)
 
     @Test
     fun `should delegate to LLM port and return content`() {

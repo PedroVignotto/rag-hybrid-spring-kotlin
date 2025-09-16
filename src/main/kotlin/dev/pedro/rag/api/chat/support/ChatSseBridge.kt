@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import dev.pedro.rag.api.chat.mappers.toApiStreamResponse
 import dev.pedro.rag.api.chat.response.stream.ApiChatDeltaResponse
 import dev.pedro.rag.api.chat.response.stream.ApiChatErrorResponse
-import dev.pedro.rag.application.chat.ChatUseCase
+import dev.pedro.rag.application.chat.usecase.ChatUseCase
 import dev.pedro.rag.domain.chat.ChatInput
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaHttpException
 import org.springframework.http.MediaType

@@ -5,7 +5,7 @@ import dev.pedro.rag.api.chat.mappers.toDomain
 import dev.pedro.rag.api.chat.request.ApiChatRequest
 import dev.pedro.rag.api.chat.response.ApiChatResponse
 import dev.pedro.rag.api.chat.support.ChatSseBridge
-import dev.pedro.rag.application.chat.ChatUseCase
+import dev.pedro.rag.application.chat.usecase.ChatUseCase
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid

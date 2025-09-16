@@ -2,8 +2,9 @@ package dev.pedro.rag.config.llm
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.pedro.rag.api.chat.support.ChatSseBridge
-import dev.pedro.rag.application.chat.ChatUseCase
 import dev.pedro.rag.application.chat.ports.LlmChatPort
+import dev.pedro.rag.application.chat.usecase.ChatUseCase
+import dev.pedro.rag.application.chat.usecase.DefaultChatUseCase
 import dev.pedro.rag.infra.llm.metrics.LlmMetrics
 import dev.pedro.rag.infra.llm.metrics.MetricsLlmChatPort
 import dev.pedro.rag.infra.llm.ollama.OllamaChatProvider
@@ -45,13 +46,17 @@ class LlmConfig {
     )
 
     @Bean
-    fun llmMetrics(registry: MeterRegistry): LlmMetrics = LlmMetrics(registry)
+    fun llmMetrics(registry: MeterRegistry) = LlmMetrics(registry)
 
-    @Bean
+    @Bean("ollamaProvider")
     fun ollamaProvider(
         client: OllamaClient,
         props: LlmProperties,
-    ): LlmChatPort = OllamaChatProvider(client, defaultModel = props.ollama.model)
+    ): LlmChatPort =
+        OllamaChatProvider(
+            client = client,
+            defaultModel = props.ollama.model,
+        )
 
     @Bean
     @Primary
@@ -67,8 +72,14 @@ class LlmConfig {
             modelTag = props.ollama.model,
         )
 
+    @Bean("chatUseCaseCore")
+    fun chatUseCaseCore(port: LlmChatPort): ChatUseCase = DefaultChatUseCase(port)
+
     @Bean
-    fun chatUseCase(port: LlmChatPort) = ChatUseCase(port)
+    @Primary
+    fun chatUseCase(
+        @Qualifier("chatUseCaseCore") core: ChatUseCase,
+    ): ChatUseCase = core
 
     @Bean
     fun chatSseBridge(
