@@ -4,12 +4,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties
 
 @ConfigurationProperties("retrieval")
 data class RetrievalProperties(
-    val embedding: Embedding
+    val embedding: Embedding,
 ) {
     data class Embedding(
         val provider: String,
         val model: String,
         val dimension: Int,
-        val normalized: Boolean
+        val normalized: Boolean,
     )
 }

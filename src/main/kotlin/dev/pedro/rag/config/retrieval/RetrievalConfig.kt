@@ -12,7 +12,6 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 class RetrievalConfig {
-
     @Bean
     fun chunker(): Chunker = SimpleChunker()
 
@@ -23,19 +22,21 @@ class RetrievalConfig {
     fun ingestUseCase(
         chunker: Chunker,
         embedPort: EmbedPort,
-        vectorStorePort: VectorStorePort
-    ): IngestUseCase = IngestUseCase(
-        chunker = chunker,
-        embedPort = embedPort,
-        vectorStorePort = vectorStorePort
-    )
+        vectorStorePort: VectorStorePort,
+    ): IngestUseCase =
+        IngestUseCase(
+            chunker = chunker,
+            embedPort = embedPort,
+            vectorStorePort = vectorStorePort,
+        )
 
     @Bean
     fun searchUseCase(
         embedPort: EmbedPort,
-        vectorStorePort: VectorStorePort
-    ): SearchUseCase = SearchUseCase(
-        embedPort = embedPort,
-        vectorStorePort = vectorStorePort
-    )
+        vectorStorePort: VectorStorePort,
+    ): SearchUseCase =
+        SearchUseCase(
+            embedPort = embedPort,
+            vectorStorePort = vectorStorePort,
+        )
 }

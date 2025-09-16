@@ -1,6 +1,5 @@
 package dev.pedro.rag.api.retrieval.mappers
 
-
 import dev.pedro.rag.api.retrieval.request.IngestRequest
 import dev.pedro.rag.api.retrieval.response.IngestResponse
 import dev.pedro.rag.api.retrieval.response.SearchMatchResponse
@@ -25,8 +24,7 @@ fun IngestResult.toResponse(): IngestResponse =
         chunksIngested = chunksIngested,
     )
 
-fun List<SearchMatch>.toResponse(): SearchResponse =
-    SearchResponse(matches = map { it.toResponse() })
+fun List<SearchMatch>.toResponse(): SearchResponse = SearchResponse(matches = map { it.toResponse() })
 
 fun SearchMatch.toResponse(): SearchMatchResponse =
     SearchMatchResponse(

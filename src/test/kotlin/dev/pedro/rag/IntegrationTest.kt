@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 abstract class IntegrationTest {
-
     companion object {
         private val started = AtomicBoolean(false)
         private lateinit var server: MockWebServer
@@ -54,7 +53,10 @@ abstract class IntegrationTest {
     @Autowired
     protected lateinit var mapper: ObjectMapper
 
-    protected fun enqueueUpstreamJson(body: Any, status: Int = 200) {
+    protected fun enqueueUpstreamJson(
+        body: Any,
+        status: Int = 200,
+    ) {
         val json = mapper.writeValueAsString(body)
         enqueueUpstream(
             MockResponse()

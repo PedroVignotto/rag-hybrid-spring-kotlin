@@ -1,6 +1,5 @@
 package dev.pedro.rag.api.retrieval.request
 
-
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 

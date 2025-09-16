@@ -13,12 +13,13 @@ import org.springframework.context.annotation.Configuration
 class EmbeddingConfig(private val props: RetrievalProperties) {
     @Bean
     fun embedPort(): EmbedPort {
-        val spec = EmbeddingSpec(
-            provider = props.embedding.provider,
-            model = props.embedding.model,
-            dim = props.embedding.dimension,
-            normalized = props.embedding.normalized
-        )
+        val spec =
+            EmbeddingSpec(
+                provider = props.embedding.provider,
+                model = props.embedding.model,
+                dim = props.embedding.dimension,
+                normalized = props.embedding.normalized,
+            )
         return NormalizingEmbedPort(FakeEmbeddingProvider(spec))
     }
 }

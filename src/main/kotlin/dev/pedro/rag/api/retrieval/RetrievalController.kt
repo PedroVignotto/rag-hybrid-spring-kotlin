@@ -26,20 +26,21 @@ class RetrievalController(
     private val ingestUseCase: IngestUseCase,
     private val searchUseCase: SearchUseCase,
 ) {
-
     @PostMapping("/ingest", consumes = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         summary = "Ingest a document into the vector store",
-        description = "Split text into overlapping chunks, embed them, and upsert into a collection namespaced by {provider, model, dim}."
+        description = "Split text into overlapping chunks, embed them, and upsert into a collection namespaced by {provider, model, dim}.",
     )
-    fun ingest(@RequestBody @Valid request: IngestRequest): IngestResponse =
-        ingestUseCase.ingest(request.toCommand()).toResponse()
+    fun ingest(
+        @RequestBody @Valid request: IngestRequest,
+    ): IngestResponse = ingestUseCase.ingest(request.toCommand()).toResponse()
 
     @PostMapping("/search", consumes = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
         summary = "Search top-K chunks by semantic similarity",
         description = "Embed the query and perform similarity search (cosine/dot depending on normalization).",
     )
-    fun search(@RequestBody @Valid request: SearchRequest): SearchResponse =
-        searchUseCase.search(queryText = request.query, topK = request.topK, filter = request.filter).toResponse()
+    fun search(
+        @RequestBody @Valid request: SearchRequest,
+    ): SearchResponse = searchUseCase.search(queryText = request.query, topK = request.topK, filter = request.filter).toResponse()
 }
