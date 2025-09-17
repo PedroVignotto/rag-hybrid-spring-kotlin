@@ -1,6 +1,5 @@
-package dev.pedro.rag.api.chat.common
+package dev.pedro.rag.api.common
 
-import dev.pedro.rag.api.common.ApiExceptionHandler
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaHttpException
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import io.mockk.every
@@ -14,6 +13,7 @@ import org.springframework.validation.BeanPropertyBindingResult
 import org.springframework.validation.FieldError
 import org.springframework.validation.ObjectError
 import org.springframework.web.bind.MethodArgumentNotValidException
+import kotlin.collections.get
 
 class ApiExceptionHandlerTest {
     private val sut = ApiExceptionHandler()
