@@ -1,9 +1,9 @@
 package dev.pedro.rag.api.chat
 
-import dev.pedro.rag.api.chat.mappers.toApi
 import dev.pedro.rag.api.chat.mappers.toDomain
-import dev.pedro.rag.api.chat.request.ApiChatRequest
-import dev.pedro.rag.api.chat.response.ApiChatResponse
+import dev.pedro.rag.api.chat.mappers.toResponse
+import dev.pedro.rag.api.chat.request.ChatRequest
+import dev.pedro.rag.api.chat.response.ChatResponse
 import dev.pedro.rag.api.chat.support.ChatSseBridge
 import dev.pedro.rag.application.chat.usecase.ChatUseCase
 import io.swagger.v3.oas.annotations.Operation
@@ -32,8 +32,8 @@ class ChatController(
         produces = [MediaType.APPLICATION_JSON_VALUE],
     )
     fun post(
-        @Valid @RequestBody req: ApiChatRequest,
-    ): ApiChatResponse = useCase.handle(req.toDomain()).toApi()
+        @Valid @RequestBody req: ChatRequest,
+    ): ChatResponse = useCase.handle(req.toDomain()).toResponse()
 
     @Operation(
         summary = "Chat (stream via SSE)",
@@ -45,7 +45,7 @@ class ChatController(
         produces = [MediaType.TEXT_EVENT_STREAM_VALUE],
     )
     fun stream(
-        @Valid @RequestBody body: ApiChatRequest,
+        @Valid @RequestBody body: ChatRequest,
     ): SseEmitter {
         val input = body.toDomain()
         val emitter = SseEmitter(0L)

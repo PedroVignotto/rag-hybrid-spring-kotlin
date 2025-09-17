@@ -2,9 +2,9 @@ package dev.pedro.rag.api.chat
 
 import com.fasterxml.jackson.databind.JsonNode
 import dev.pedro.rag.IntegrationTest
-import dev.pedro.rag.api.chat.request.ApiChatMessage
-import dev.pedro.rag.api.chat.request.ApiChatParams
-import dev.pedro.rag.api.chat.request.ApiChatRequest
+import dev.pedro.rag.api.chat.request.ChatMessageRequest
+import dev.pedro.rag.api.chat.request.ChatParamsRequest
+import dev.pedro.rag.api.chat.request.ChatRequest
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponse
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponseMessage
 import okhttp3.mockwebserver.MockResponse
@@ -27,9 +27,9 @@ class ChatControllerTest : IntegrationTest() {
             status = 200,
         )
         val req =
-            ApiChatRequest(
-                messages = listOf(ApiChatMessage("user", "hi")),
-                params = ApiChatParams(temperature = 0.2, topP = 0.9, maxTokens = 32),
+            ChatRequest(
+                messages = listOf(ChatMessageRequest("user", "hi")),
+                params = ChatParamsRequest(temperature = 0.2, topP = 0.9, maxTokens = 32),
             )
 
         mvc.perform(
@@ -49,7 +49,7 @@ class ChatControllerTest : IntegrationTest() {
 
     @Test
     fun `POST v1_chat - 400 bean validation`() {
-        val req = ApiChatRequest(messages = emptyList(), params = null)
+        val req = ChatRequest(messages = emptyList(), params = null)
 
         mvc.perform(
             post("/v1/chat")
@@ -63,7 +63,7 @@ class ChatControllerTest : IntegrationTest() {
     @Test
     fun `POST v1_chat - 502 when upstream returns 500`() {
         enqueueUpstream(MockResponse().setResponseCode(500).setBody("boom"))
-        val req = ApiChatRequest(messages = listOf(ApiChatMessage("user", "hi")), params = null)
+        val req = ChatRequest(messages = listOf(ChatMessageRequest("user", "hi")), params = null)
 
         mvc.perform(
             post("/v1/chat")
@@ -145,10 +145,10 @@ class ChatControllerTest : IntegrationTest() {
         assertThat(json["stream"].asBoolean()).isTrue
     }
 
-    private fun streamRequest(): ApiChatRequest =
-        ApiChatRequest(
-            messages = listOf(ApiChatMessage("USER", "hello")),
-            params = ApiChatParams(temperature = 0.2, topP = 0.9, maxTokens = 32),
+    private fun streamRequest(): ChatRequest =
+        ChatRequest(
+            messages = listOf(ChatMessageRequest("USER", "hello")),
+            params = ChatParamsRequest(temperature = 0.2, topP = 0.9, maxTokens = 32),
         )
 
     private data class SseEvent(val name: String, val data: String)
