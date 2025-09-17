@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import dev.pedro.rag.config.llm.LlmProperties
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaHttpException
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatOptions
+import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatOptionsRequest
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequestMessage
+import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatMessageRequest
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponse
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponseMessage
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatStreamChunkResponse
@@ -70,8 +70,8 @@ class OllamaClientTest {
             sut.chat(
                 OllamaChatRequest(
                     model = MODEL,
-                    messages = listOf(OllamaChatRequestMessage("user", "hi")),
-                    options = OllamaChatOptions(temperature = 0.2, topP = 0.9, numPredict = 32),
+                    messages = listOf(OllamaChatMessageRequest("user", "hi")),
+                    options = OllamaChatOptionsRequest(temperature = 0.2, topP = 0.9, numPredict = 32),
                 ),
             )
 
@@ -100,7 +100,7 @@ class OllamaClientTest {
         sut.chat(
             OllamaChatRequest(
                 model = MODEL,
-                messages = listOf(OllamaChatRequestMessage("user", "hi")),
+                messages = listOf(OllamaChatMessageRequest("user", "hi")),
                 keepAlive = "1s",
             ),
         )
@@ -118,7 +118,7 @@ class OllamaClientTest {
                 sut.chat(
                     OllamaChatRequest(
                         model = MODEL,
-                        messages = listOf(OllamaChatRequestMessage("user", "x")),
+                        messages = listOf(OllamaChatMessageRequest("user", "x")),
                     ),
                 )
             }
@@ -136,7 +136,7 @@ class OllamaClientTest {
                 sut.chat(
                     OllamaChatRequest(
                         model = MODEL,
-                        messages = listOf(OllamaChatRequestMessage("user", "x")),
+                        messages = listOf(OllamaChatMessageRequest("user", "x")),
                     ),
                 )
             }
@@ -165,8 +165,8 @@ class OllamaClientTest {
             payload =
                 OllamaChatRequest(
                     model = MODEL,
-                    messages = listOf(OllamaChatRequestMessage("user", "stream please")),
-                    options = OllamaChatOptions(temperature = 0.1),
+                    messages = listOf(OllamaChatMessageRequest("user", "stream please")),
+                    options = OllamaChatOptionsRequest(temperature = 0.1),
                 ),
             onDelta = { deltas += it },
             onDoneChunk = { last = it },
@@ -197,7 +197,7 @@ class OllamaClientTest {
                     payload =
                         OllamaChatRequest(
                             model = MODEL,
-                            messages = listOf(OllamaChatRequestMessage("user", "stream error")),
+                            messages = listOf(OllamaChatMessageRequest("user", "stream error")),
                         ),
                     onDelta = {},
                 )
@@ -227,8 +227,8 @@ class OllamaClientTest {
             payload =
                 OllamaChatRequest(
                     model = MODEL,
-                    messages = listOf(OllamaChatRequestMessage("user", "stream no onDone")),
-                    options = OllamaChatOptions(temperature = 0.1),
+                    messages = listOf(OllamaChatMessageRequest("user", "stream no onDone")),
+                    options = OllamaChatOptionsRequest(temperature = 0.1),
                 ),
             onDelta = { deltas += it },
         )
@@ -262,7 +262,7 @@ class OllamaClientTest {
             payload =
                 OllamaChatRequest(
                     model = MODEL,
-                    messages = listOf(OllamaChatRequestMessage("user", "fallback test")),
+                    messages = listOf(OllamaChatMessageRequest("user", "fallback test")),
                 ),
             onDelta = { deltas += it },
             onDoneChunk = { last = it },
@@ -289,7 +289,7 @@ class OllamaClientTest {
         sut.chat(
             OllamaChatRequest(
                 model = MODEL,
-                messages = listOf(OllamaChatRequestMessage("user", exotic)),
+                messages = listOf(OllamaChatMessageRequest("user", exotic)),
             ),
         )
 

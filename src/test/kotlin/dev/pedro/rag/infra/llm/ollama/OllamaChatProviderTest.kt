@@ -9,7 +9,7 @@ import dev.pedro.rag.infra.llm.ollama.client.OllamaClient
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaHttpException
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequestMessage
+import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatMessageRequest
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponse
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponseMessage
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatStreamChunkResponse
@@ -214,7 +214,7 @@ class OllamaChatProviderTest {
         expectedParams: InferenceParams,
     ) {
         assertThat(sent.model).isEqualTo(MODEL)
-        assertThat(sent.messages).containsExactly(OllamaChatRequestMessage("user", "Hi"))
+        assertThat(sent.messages).containsExactly(OllamaChatMessageRequest("user", "Hi"))
         assertThat(sent.options?.temperature).isEqualTo(expectedParams.temperature)
         assertThat(sent.options?.topP).isEqualTo(expectedParams.topP)
         assertThat(sent.options?.numPredict).isEqualTo(expectedParams.maxTokens)

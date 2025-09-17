@@ -3,24 +3,24 @@ package dev.pedro.rag.infra.llm.ollama.mappers
 import dev.pedro.rag.domain.chat.ChatInput
 import dev.pedro.rag.domain.chat.ChatMessage
 import dev.pedro.rag.domain.chat.ChatRole
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatOptions
+import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatOptionsRequest
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequestMessage
+import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatMessageRequest
 
 fun ChatInput.toOllamaChatRequest(model: String): OllamaChatRequest =
     OllamaChatRequest(
         model = model,
-        messages = this.messages.map { it.toOllamaRequestMessage() },
+        messages = this.messages.map { it.toOllamaChatMessageRequest() },
         options =
-            OllamaChatOptions(
+            OllamaChatOptionsRequest(
                 temperature = this.params.temperature,
                 topP = this.params.topP,
                 numPredict = this.params.maxTokens,
             ),
     )
 
-private fun ChatMessage.toOllamaRequestMessage(): OllamaChatRequestMessage =
-    OllamaChatRequestMessage(
+private fun ChatMessage.toOllamaChatMessageRequest(): OllamaChatMessageRequest =
+    OllamaChatMessageRequest(
         role = this.role.toOllamaRole(),
         content = this.content,
     )

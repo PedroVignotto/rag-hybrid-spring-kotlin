@@ -4,15 +4,16 @@ import dev.pedro.rag.domain.chat.ChatInput
 import dev.pedro.rag.domain.chat.ChatMessage
 import dev.pedro.rag.domain.chat.ChatRole
 import dev.pedro.rag.domain.chat.InferenceParams
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatOptions
+import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatOptionsRequest
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequestMessage
+import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatMessageRequest
 import org.assertj.core.api.Assertions.assertThat
 import kotlin.test.Test
 
 private const val MODEL = "llama3.2:3b"
 
 class ChatToOllamaMapperTest {
+
     @Test
     fun shouldMapChatInputToOllamaChatRequest() {
         val input =
@@ -34,12 +35,12 @@ class ChatToOllamaMapperTest {
             buildOllamaChatRequest(
                 messages =
                     listOf(
-                        OllamaChatRequestMessage("system", "S"),
-                        OllamaChatRequestMessage("user", "U"),
-                        OllamaChatRequestMessage("assistant", "A"),
+                        OllamaChatMessageRequest("system", "S"),
+                        OllamaChatMessageRequest("user", "U"),
+                        OllamaChatMessageRequest("assistant", "A"),
                     ),
                 options =
-                    OllamaChatOptions(
+                    OllamaChatOptionsRequest(
                         temperature = 0.3,
                         topP = 0.8,
                         numPredict = 128,
@@ -52,7 +53,7 @@ class ChatToOllamaMapperTest {
     }
 
     @Test
-    fun shouldMapChatInputWithNullParamsToOllamaChatRequestWithNullOptions() {
+    fun shouldMapChatInputWithNullParamFieldsToOllamaChatRequestWithNullOptionFields() {
         val input =
             ChatInput(
                 messages = listOf(ChatMessage(ChatRole.USER, "Hello")),
@@ -65,9 +66,9 @@ class ChatToOllamaMapperTest {
             )
         val expected =
             buildOllamaChatRequest(
-                messages = listOf(OllamaChatRequestMessage("user", "Hello")),
+                messages = listOf(OllamaChatMessageRequest("user", "Hello")),
                 options =
-                    OllamaChatOptions(
+                    OllamaChatOptionsRequest(
                         temperature = null,
                         topP = null,
                         numPredict = null,
@@ -80,8 +81,8 @@ class ChatToOllamaMapperTest {
     }
 
     private fun buildOllamaChatRequest(
-        messages: List<OllamaChatRequestMessage>,
-        options: OllamaChatOptions,
+        messages: List<OllamaChatMessageRequest>,
+        options: OllamaChatOptionsRequest,
     ) = OllamaChatRequest(
         model = MODEL,
         messages = messages,

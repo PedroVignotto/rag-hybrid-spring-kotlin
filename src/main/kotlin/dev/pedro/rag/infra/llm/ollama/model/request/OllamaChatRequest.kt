@@ -8,8 +8,21 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class OllamaChatRequest(
     val model: String,
-    val messages: List<OllamaChatRequestMessage>,
+    val messages: List<OllamaChatMessageRequest>,
     val stream: Boolean? = null,
-    val options: OllamaChatOptions? = null,
+    val options: OllamaChatOptionsRequest? = null,
     val keepAlive: String? = null,
+)
+
+data class OllamaChatMessageRequest(
+    val role: String,
+    val content: String,
+)
+
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
+data class OllamaChatOptionsRequest(
+    val temperature: Double? = null,
+    val topP: Double? = null,
+    val numPredict: Int? = null,
+    val seed: Int? = null,
 )
