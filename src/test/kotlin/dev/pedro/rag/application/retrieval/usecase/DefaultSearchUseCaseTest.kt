@@ -28,12 +28,12 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
 @ExtendWith(MockKExtension::class)
-class SearchUseCaseTest(
+class DefaultSearchUseCaseTest(
     @param:MockK private val embedPort: EmbedPort,
     @param:MockK private val vectorStorePort: VectorStorePort,
 ) {
     @InjectMockKs
-    private lateinit var sut: SearchUseCase
+    private lateinit var sut: DefaultSearchUseCase
     private lateinit var defaultSpec: EmbeddingSpec
 
     companion object {
@@ -46,13 +46,13 @@ class SearchUseCaseTest(
 
             return listOf(
                 named("blank query") {
-                    SearchUseCase(
+                    DefaultSearchUseCase(
                         embedPort = mockk(),
                         vectorStorePort = mockk(),
                     ).search(SearchInput(queryText = "   ", topK = 3, filter = null))
                 },
                 named("topK <= 0") {
-                    SearchUseCase(
+                    DefaultSearchUseCase(
                         embedPort = mockk(),
                         vectorStorePort = mockk(),
                     ).search(SearchInput(queryText = "ok", topK = 0, filter = null))

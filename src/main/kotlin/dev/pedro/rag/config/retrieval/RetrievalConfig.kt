@@ -5,6 +5,7 @@ import dev.pedro.rag.application.retrieval.ingest.usecase.IngestUseCase
 import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
+import dev.pedro.rag.application.retrieval.usecase.DefaultSearchUseCase
 import dev.pedro.rag.application.retrieval.usecase.SearchUseCase
 import dev.pedro.rag.infra.retrieval.chunker.SimpleChunker
 import dev.pedro.rag.infra.retrieval.vectorstore.memory.InMemoryVectorStore
@@ -39,13 +40,19 @@ class RetrievalConfig {
         @Qualifier("ingestUseCaseCore") core: IngestUseCase,
     ): IngestUseCase = core
 
-    @Bean
-    fun searchUseCase(
+    @Bean("searchUseCaseCore")
+    fun searchUseCaseCore(
         embedPort: EmbedPort,
         vectorStorePort: VectorStorePort,
     ): SearchUseCase =
-        SearchUseCase(
+        DefaultSearchUseCase(
             embedPort = embedPort,
             vectorStorePort = vectorStorePort,
         )
+
+    @Bean
+    @Primary
+    fun searchUseCase(
+        @Qualifier("searchUseCaseCore") core: SearchUseCase,
+    ): SearchUseCase = core
 }
