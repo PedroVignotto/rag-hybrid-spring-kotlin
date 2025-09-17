@@ -26,7 +26,6 @@ class OllamaHealthIndicator(
     override fun health(): Health {
         val uri = buildTagsEndpointUri(props.ollama.baseUrl)
         val request = buildReadinessRequest(uri, readinessTimeout)
-
         return runCatching { sendReadinessRequest(request).statusCode() }
             .fold(
                 onSuccess = { code ->
