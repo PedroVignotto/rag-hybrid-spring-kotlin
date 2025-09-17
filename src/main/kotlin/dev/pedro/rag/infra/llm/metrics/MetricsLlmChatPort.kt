@@ -4,6 +4,8 @@ import dev.pedro.rag.application.chat.ports.LlmChatPort
 import dev.pedro.rag.domain.chat.ChatInput
 import dev.pedro.rag.domain.chat.ChatOutput
 import dev.pedro.rag.domain.chat.ChatUsage
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.ENDPOINT_COMPLETE
+import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.ENDPOINT_STREAM
 import dev.pedro.rag.infra.observability.metrics.MetricsCommon.STATUS_ERROR
 import dev.pedro.rag.infra.observability.metrics.MetricsCommon.STATUS_SUCCESS
 
@@ -29,7 +31,7 @@ class MetricsLlmChatPort(
             throw ex
         } finally {
             metrics.recordLatency(
-                endpoint = LlmMetrics.ENDPOINT_COMPLETE,
+                endpoint = ENDPOINT_COMPLETE,
                 provider = providerTag,
                 model = modelTag,
                 status = status,
@@ -53,7 +55,7 @@ class MetricsLlmChatPort(
                         metrics.recordTokens(
                             provider = providerTag,
                             model = modelTag,
-                            endpoint = LlmMetrics.ENDPOINT_STREAM,
+                            endpoint = ENDPOINT_STREAM,
                             promptTokens = usage.promptTokens?.toLong(),
                             completionTokens = usage.completionTokens?.toLong(),
                         )
@@ -73,7 +75,7 @@ class MetricsLlmChatPort(
         } finally {
             metrics.decrementActiveStreams()
             metrics.recordLatency(
-                endpoint = LlmMetrics.ENDPOINT_STREAM,
+                endpoint = ENDPOINT_STREAM,
                 provider = providerTag,
                 model = modelTag,
                 status = status,
