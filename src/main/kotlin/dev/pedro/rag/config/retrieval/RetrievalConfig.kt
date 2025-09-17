@@ -5,8 +5,8 @@ import dev.pedro.rag.application.retrieval.ingest.usecase.IngestUseCase
 import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
-import dev.pedro.rag.application.retrieval.usecase.DefaultSearchUseCase
-import dev.pedro.rag.application.retrieval.usecase.SearchUseCase
+import dev.pedro.rag.application.retrieval.search.usecase.DefaultSearchUseCase
+import dev.pedro.rag.application.retrieval.search.usecase.SearchUseCase
 import dev.pedro.rag.infra.retrieval.chunker.SimpleChunker
 import dev.pedro.rag.infra.retrieval.vectorstore.memory.InMemoryVectorStore
 import org.springframework.beans.factory.annotation.Qualifier

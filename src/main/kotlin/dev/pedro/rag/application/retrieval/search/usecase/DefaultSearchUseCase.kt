@@ -1,11 +1,10 @@
-package dev.pedro.rag.application.retrieval.usecase
+package dev.pedro.rag.application.retrieval.search.usecase
 
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.application.retrieval.search.dto.SearchInput
 import dev.pedro.rag.application.retrieval.search.dto.SearchOutput
 import dev.pedro.rag.domain.retrieval.CollectionSpec
-import dev.pedro.rag.domain.retrieval.CollectionSpec.Companion.fromSpec
 import dev.pedro.rag.domain.retrieval.EmbeddingVector
 import dev.pedro.rag.domain.retrieval.SearchMatch
 
@@ -15,7 +14,7 @@ class DefaultSearchUseCase(
 ) : SearchUseCase {
     override fun search(input: SearchInput): SearchOutput {
         validateInput(input)
-        val collectionSpec: CollectionSpec = fromSpec(embedPort.spec())
+        val collectionSpec: CollectionSpec = CollectionSpec.Companion.fromSpec(embedPort.spec())
         val queryVector: EmbeddingVector = embedQueryVector(input.queryText)
         val matches: List<SearchMatch> =
             searchInStore(

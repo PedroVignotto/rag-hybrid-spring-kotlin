@@ -3,6 +3,7 @@ package dev.pedro.rag.application.retrieval.usecase
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.application.retrieval.search.dto.SearchInput
+import dev.pedro.rag.application.retrieval.search.usecase.DefaultSearchUseCase
 import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec

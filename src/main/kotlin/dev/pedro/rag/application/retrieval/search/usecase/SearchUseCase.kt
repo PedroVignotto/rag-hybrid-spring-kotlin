@@ -1,4 +1,4 @@
-package dev.pedro.rag.application.retrieval.usecase
+package dev.pedro.rag.application.retrieval.search.usecase
 
 import dev.pedro.rag.application.retrieval.search.dto.SearchInput
 import dev.pedro.rag.application.retrieval.search.dto.SearchOutput
