@@ -2,6 +2,7 @@ package dev.pedro.rag.application.retrieval.usecase
 
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
+import dev.pedro.rag.application.retrieval.search.dto.SearchInput
 import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
@@ -42,12 +43,19 @@ class SearchUseCaseTest(
                 name: String,
                 block: () -> Unit,
             ) = Named.of(name, Executable { block() })
+
             return listOf(
                 named("blank query") {
-                    SearchUseCase(embedPort = mockk(), vectorStorePort = mockk()).search(queryText = "   ", topK = 3, filter = null)
+                    SearchUseCase(
+                        embedPort = mockk(),
+                        vectorStorePort = mockk(),
+                    ).search(SearchInput(queryText = "   ", topK = 3, filter = null))
                 },
                 named("topK <= 0") {
-                    SearchUseCase(embedPort = mockk(), vectorStorePort = mockk()).search(queryText = "ok", topK = 0, filter = null)
+                    SearchUseCase(
+                        embedPort = mockk(),
+                        vectorStorePort = mockk(),
+                    ).search(SearchInput(queryText = "ok", topK = 0, filter = null))
                 },
             )
         }
@@ -61,9 +69,9 @@ class SearchUseCaseTest(
 
     @Test
     fun `should embed query and search in namespaced collection`() {
-        val queryText = "what is in x-bacon?"
+        val input = SearchInput(queryText = "what is in x-bacon?", topK = 3, filter = null)
         val queryVector = EmbeddingVector(values = floatArrayOf(1f, 0f, 0f), dim = 3, normalized = true)
-        every { embedPort.embed(queryText) } returns queryVector
+        every { embedPort.embed(input.queryText) } returns queryVector
         val collectionSlot: CapturingSlot<CollectionSpec> = slot()
         val returned =
             listOf(
@@ -77,35 +85,35 @@ class SearchUseCaseTest(
             vectorStorePort.search(
                 collection = capture(collectionSlot),
                 query = queryVector,
-                topK = 3,
-                filter = null,
+                topK = input.topK,
+                filter = input.filter,
             )
         } returns returned
 
-        val matches = sut.search(queryText = queryText, topK = 3, filter = null)
+        val out = sut.search(input)
 
-        assertEquals(returned, matches)
+        assertEquals(returned, out.matches)
         assertEquals(CollectionSpec("fake", "fake-v1", 3), collectionSlot.captured)
-        verify(exactly = 1) { embedPort.embed(queryText) }
-        verify(exactly = 1) {
-            vectorStorePort.search(collectionSlot.captured, queryVector, 3, null)
-        }
+        verify(exactly = 1) { embedPort.embed(input.queryText) }
+        verify(exactly = 1) { vectorStorePort.search(collectionSlot.captured, queryVector, input.topK, input.filter) }
     }
 
     @Test
     fun `should forward filter and topK to vector store`() {
-        val queryText = "menu items with bacon"
-        val filter = mapOf("store" to "hq", "type" to "menu")
+        val input =
+            SearchInput(
+                queryText = "menu items with bacon",
+                topK = 5,
+                filter = mapOf("store" to "hq", "type" to "menu"),
+            )
         val queryVector = EmbeddingVector(values = floatArrayOf(0f, 1f, 0f), dim = 3, normalized = true)
-        every { embedPort.embed(queryText) } returns queryVector
-        every {
-            vectorStorePort.search(any(), queryVector, 5, filter)
-        } returns emptyList()
+        every { embedPort.embed(input.queryText) } returns queryVector
+        every { vectorStorePort.search(any(), queryVector, input.topK, input.filter) } returns emptyList()
 
-        val matches = sut.search(queryText = queryText, topK = 5, filter = filter)
+        val out = sut.search(input)
 
-        assertEquals(0, matches.size)
-        verify(exactly = 1) { vectorStorePort.search(any(), queryVector, 5, filter) }
+        assertEquals(0, out.matches.size)
+        verify(exactly = 1) { vectorStorePort.search(any(), queryVector, input.topK, input.filter) }
     }
 
     @ParameterizedTest(name = "{index} => {0}")

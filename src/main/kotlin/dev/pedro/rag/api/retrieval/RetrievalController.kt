@@ -42,5 +42,5 @@ class RetrievalController(
     )
     fun search(
         @RequestBody @Valid request: SearchRequest,
-    ): SearchResponse = searchUseCase.search(queryText = request.query, topK = request.topK, filter = request.filter).toResponse()
+    ): SearchResponse = searchUseCase.search(request.toInput()).toResponse()
 }

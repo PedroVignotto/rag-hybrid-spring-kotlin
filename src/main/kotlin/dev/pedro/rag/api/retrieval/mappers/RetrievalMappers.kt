@@ -1,11 +1,14 @@
 package dev.pedro.rag.api.retrieval.mappers
 
 import dev.pedro.rag.api.retrieval.request.IngestRequest
+import dev.pedro.rag.api.retrieval.request.SearchRequest
 import dev.pedro.rag.api.retrieval.response.IngestResponse
 import dev.pedro.rag.api.retrieval.response.SearchMatchResponse
 import dev.pedro.rag.api.retrieval.response.SearchResponse
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestInput
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestOutput
+import dev.pedro.rag.application.retrieval.search.dto.SearchInput
+import dev.pedro.rag.application.retrieval.search.dto.SearchOutput
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.SearchMatch
 
@@ -24,7 +27,14 @@ fun IngestOutput.toResponse(): IngestResponse =
         chunksIngested = chunksIngested,
     )
 
-fun List<SearchMatch>.toResponse(): SearchResponse = SearchResponse(matches = map { it.toResponse() })
+fun SearchRequest.toInput(): SearchInput =
+    SearchInput(
+        queryText = query,
+        topK = topK,
+        filter = filter,
+    )
+
+fun SearchOutput.toResponse(): SearchResponse = SearchResponse(matches = matches.map { it.toResponse() })
 
 fun SearchMatch.toResponse(): SearchMatchResponse =
     SearchMatchResponse(

@@ -1,11 +1,14 @@
 package dev.pedro.rag.api.retrieval.mappers
 
 import dev.pedro.rag.api.retrieval.request.IngestRequest
+import dev.pedro.rag.api.retrieval.request.SearchRequest
 import dev.pedro.rag.api.retrieval.response.IngestResponse
 import dev.pedro.rag.api.retrieval.response.SearchMatchResponse
 import dev.pedro.rag.api.retrieval.response.SearchResponse
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestInput
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestOutput
+import dev.pedro.rag.application.retrieval.search.dto.SearchInput
+import dev.pedro.rag.application.retrieval.search.dto.SearchOutput
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.SearchMatch
 import dev.pedro.rag.domain.retrieval.TextChunk
@@ -38,7 +41,7 @@ class RetrievalApiMapperTest {
     }
 
     @Test
-    fun `should map IngestOutput (domain) to IngestResponse (api)`() {
+    fun `should map IngestOutput to IngestResponse`() {
         val domain = IngestOutput(documentId = DocumentId("doc-xyz"), chunksIngested = 3)
         val expected = IngestResponse(documentId = "doc-xyz", chunksIngested = 3)
 
@@ -48,27 +51,50 @@ class RetrievalApiMapperTest {
     }
 
     @Test
-    fun `should map list of SearchMatch (domain) to SearchResponse (api)`() {
+    fun `should map SearchRequest to SearchInput`() {
+        val api =
+            SearchRequest(
+                query = "x-bacon",
+                topK = 5,
+                filter = mapOf("store" to "hq"),
+            )
+        val expected =
+            SearchInput(
+                queryText = "x-bacon",
+                topK = 5,
+                filter = mapOf("store" to "hq"),
+            )
+
+        val actual = api.toInput()
+
+        assertThat(actual).usingRecursiveComparison().isEqualTo(expected)
+    }
+
+    @Test
+    fun `should map SearchOutput to SearchResponse`() {
         val domain =
-            listOf(
-                SearchMatch(
-                    documentId = DocumentId("menu-2025-09"),
-                    chunk =
-                        TextChunk(
-                            text = "X-Bacon: bun, 150g beef, bacon, cheese, mayo",
-                            metadata = mapOf("store" to "hq", "type" to "menu"),
+            SearchOutput(
+                matches =
+                    listOf(
+                        SearchMatch(
+                            documentId = DocumentId("menu-2025-09"),
+                            chunk =
+                                TextChunk(
+                                    text = "X-Bacon: bun, 150g beef, bacon, cheese, mayo",
+                                    metadata = mapOf("store" to "hq", "type" to "menu"),
+                                ),
+                            score = 0.92,
                         ),
-                    score = 0.92,
-                ),
-                SearchMatch(
-                    documentId = DocumentId("menu-2025-09"),
-                    chunk =
-                        TextChunk(
-                            text = "Fries combo available",
-                            metadata = mapOf("store" to "hq", "type" to "menu"),
+                        SearchMatch(
+                            documentId = DocumentId("menu-2025-09"),
+                            chunk =
+                                TextChunk(
+                                    text = "Fries combo available",
+                                    metadata = mapOf("store" to "hq", "type" to "menu"),
+                                ),
+                            score = 0.78,
                         ),
-                    score = 0.78,
-                ),
+                    ),
             )
         val expected =
             SearchResponse(
