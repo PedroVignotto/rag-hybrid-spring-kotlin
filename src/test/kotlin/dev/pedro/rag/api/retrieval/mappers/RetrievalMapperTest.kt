@@ -15,7 +15,7 @@ import dev.pedro.rag.domain.retrieval.TextChunk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-class RetrievalApiMapperTest {
+class RetrievalMapperTest {
     @Test
     fun `should map IngestRequest to IngestInput with null metadata as empty map`() {
         val api =
