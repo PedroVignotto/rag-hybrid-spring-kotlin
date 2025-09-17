@@ -9,7 +9,7 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming
 data class OllamaChatStreamChunkResponse(
     val model: String? = null,
     val createdAt: String? = null,
-    val message: OllamaChatResponseMessage? = null,
+    val message: OllamaChatMessageResponse? = null,
     val done: Boolean = false,
     val response: String? = null,
     val totalDuration: Long? = null,

@@ -8,8 +8,8 @@ import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatMessageRequest
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatOptionsRequest
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest
+import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatMessageResponse
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponse
-import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponseMessage
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatStreamChunkResponse
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -60,7 +60,7 @@ class OllamaClientTest {
         val body =
             mapper.writeValueAsString(
                 OllamaChatResponse(
-                    message = OllamaChatResponseMessage(role = "assistant", content = "ok"),
+                    message = OllamaChatMessageResponse(role = "assistant", content = "ok"),
                     done = true,
                 ),
             )
@@ -93,7 +93,7 @@ class OllamaClientTest {
     fun `should ignore payload keepAlive and use config keep_alive`() {
         val okBody =
             mapper.writeValueAsString(
-                OllamaChatResponse(message = OllamaChatResponseMessage("assistant", "ok"), done = true),
+                OllamaChatResponse(message = OllamaChatMessageResponse("assistant", "ok"), done = true),
             )
         server.enqueue(MockResponse().setResponseCode(200).setBody(okBody))
 
@@ -281,7 +281,7 @@ class OllamaClientTest {
     fun `should encode request body as UTF-8`() {
         val okBody =
             mapper.writeValueAsString(
-                OllamaChatResponse(message = OllamaChatResponseMessage("assistant", "ok"), done = true),
+                OllamaChatResponse(message = OllamaChatMessageResponse("assistant", "ok"), done = true),
             )
         server.enqueue(MockResponse().setResponseCode(200).setBody(okBody))
         val exotic = "hello 🌎 — coffee"

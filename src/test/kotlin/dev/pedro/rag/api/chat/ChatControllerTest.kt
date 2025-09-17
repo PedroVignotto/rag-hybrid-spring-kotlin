@@ -5,8 +5,8 @@ import dev.pedro.rag.IntegrationTest
 import dev.pedro.rag.api.chat.request.ChatMessageRequest
 import dev.pedro.rag.api.chat.request.ChatParamsRequest
 import dev.pedro.rag.api.chat.request.ChatRequest
+import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatMessageResponse
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponse
-import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponseMessage
 import okhttp3.mockwebserver.MockResponse
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -21,7 +21,7 @@ class ChatControllerTest : IntegrationTest() {
     fun `POST v1_chat - 200 ok end-to-end`() {
         enqueueUpstreamJson(
             OllamaChatResponse(
-                message = OllamaChatResponseMessage(role = "assistant", content = "ok"),
+                message = OllamaChatMessageResponse(role = "assistant", content = "ok"),
                 done = true,
             ),
             status = 200,

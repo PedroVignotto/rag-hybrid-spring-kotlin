@@ -1,6 +1,6 @@
 package dev.pedro.rag.infra.llm.ollama.model.response
 
-data class OllamaChatResponseMessage(
+data class OllamaChatMessageResponse(
     val role: String? = null,
     val content: String? = null,
 )

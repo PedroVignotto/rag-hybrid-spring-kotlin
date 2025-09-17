@@ -10,8 +10,8 @@ import dev.pedro.rag.infra.llm.ollama.errors.OllamaHttpException
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatMessageRequest
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest
+import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatMessageResponse
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponse
-import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponseMessage
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatStreamChunkResponse
 import io.mockk.every
 import io.mockk.mockk
@@ -41,7 +41,7 @@ class OllamaChatProviderTest {
         @JvmStatic
         private fun buildOllamaChatResponse(content: String?): OllamaChatResponse =
             OllamaChatResponse(
-                message = OllamaChatResponseMessage(role = "assistant", content = content),
+                message = OllamaChatMessageResponse(role = "assistant", content = content),
                 done = true,
             )
     }
@@ -205,7 +205,7 @@ class OllamaChatProviderTest {
 
     private fun buildResponse(content: String?) =
         OllamaChatResponse(
-            message = OllamaChatResponseMessage(role = "assistant", content = content),
+            message = OllamaChatMessageResponse(role = "assistant", content = content),
             done = true,
         )
 
