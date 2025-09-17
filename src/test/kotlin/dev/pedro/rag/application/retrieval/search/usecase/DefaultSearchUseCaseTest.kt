@@ -1,9 +1,8 @@
-package dev.pedro.rag.application.retrieval.usecase
+package dev.pedro.rag.application.retrieval.search.usecase
 
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.application.retrieval.search.dto.SearchInput
-import dev.pedro.rag.application.retrieval.search.usecase.DefaultSearchUseCase
 import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
@@ -78,7 +77,11 @@ class DefaultSearchUseCaseTest(
             listOf(
                 SearchMatch(
                     documentId = DocumentId("doc-1"),
-                    chunk = TextChunk(text = "X-Bacon: bun, 150g beef, bacon, cheese, mayo", metadata = mapOf("store" to "hq")),
+                    chunk =
+                        TextChunk(
+                            text = "X-Bacon: bun, 150g beef, bacon, cheese, mayo",
+                            metadata = mapOf("store" to "hq"),
+                        ),
                     score = 0.92,
                 ),
             )
