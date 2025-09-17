@@ -12,7 +12,7 @@ import kotlin.test.Test
 
 private const val MODEL = "llama3.2:3b"
 
-class ChatToOllamaMapperTest {
+class OllamaChatMapperTest {
 
     @Test
     fun shouldMapChatInputToOllamaChatRequest() {
