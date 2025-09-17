@@ -50,3 +50,11 @@ guardrails:
         capacity: 3
         refill: 3
         period: 30s
+      "/v1/retrieval/ingest":
+        capacity: 2
+        refill: 2
+        period: 60s
+      "/v1/retrieval/search":
+        capacity: 6
+        refill: 6
+        period: 10s
