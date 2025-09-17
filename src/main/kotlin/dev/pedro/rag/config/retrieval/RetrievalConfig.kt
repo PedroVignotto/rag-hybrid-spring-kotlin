@@ -9,6 +9,7 @@ import dev.pedro.rag.application.retrieval.search.usecase.DefaultSearchUseCase
 import dev.pedro.rag.application.retrieval.search.usecase.SearchUseCase
 import dev.pedro.rag.infra.retrieval.chunker.SimpleChunker
 import dev.pedro.rag.infra.retrieval.metrics.MetricsIngestUseCase
+import dev.pedro.rag.infra.retrieval.metrics.MetricsSearchUseCase
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics
 import dev.pedro.rag.infra.retrieval.vectorstore.memory.InMemoryVectorStore
 import io.micrometer.core.instrument.MeterRegistry
@@ -67,5 +68,12 @@ class RetrievalConfig {
     @Primary
     fun searchUseCase(
         @Qualifier("searchUseCaseCore") core: SearchUseCase,
-    ): SearchUseCase = core
+        metrics: RetrievalMetrics,
+        embedPort: EmbedPort,
+    ): SearchUseCase =
+        MetricsSearchUseCase(
+            delegate = core,
+            metrics = metrics,
+            embedPort = embedPort,
+        )
 }
