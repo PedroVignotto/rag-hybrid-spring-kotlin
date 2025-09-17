@@ -1,9 +1,9 @@
 package dev.pedro.rag.api.chat.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.pedro.rag.api.chat.mappers.toApiStreamResponse
-import dev.pedro.rag.api.chat.response.stream.ApiChatDeltaResponse
-import dev.pedro.rag.api.chat.response.stream.ApiChatErrorResponse
+import dev.pedro.rag.api.chat.mappers.toResponse
+import dev.pedro.rag.api.chat.response.stream.ChatDeltaResponse
+import dev.pedro.rag.api.chat.response.stream.ChatErrorResponse
 import dev.pedro.rag.application.chat.usecase.ChatUseCase
 import dev.pedro.rag.domain.chat.ChatInput
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaHttpException
@@ -32,14 +32,14 @@ class ChatSseBridge(
             try {
                 useCase.handleStream(
                     input = input,
-                    onDelta = { token -> sendJson(emitter, EV_DELTA, ApiChatDeltaResponse(token)) },
-                    onUsage = { usage -> sendJson(emitter, EV_USAGE, usage.toApiStreamResponse()) },
+                    onDelta = { token -> sendJson(emitter, EV_DELTA, ChatDeltaResponse(token)) },
+                    onUsage = { usage -> sendJson(emitter, EV_USAGE, usage.toResponse()) },
                 )
                 sendJson(emitter, EV_DONE, emptyMap<String, String>())
             } catch (e: OllamaHttpException) {
-                sendJson(emitter, EV_ERROR, ApiChatErrorResponse(e.status, upstreamBody = e.responseBody))
+                sendJson(emitter, EV_ERROR, ChatErrorResponse(e.status, upstreamBody = e.responseBody))
             } catch (t: Throwable) {
-                sendJson(emitter, EV_ERROR, ApiChatErrorResponse(500, message = t.message ?: "Internal error"))
+                sendJson(emitter, EV_ERROR, ChatErrorResponse(500, message = t.message ?: "Internal error"))
             } finally {
                 safeComplete(emitter)
             }

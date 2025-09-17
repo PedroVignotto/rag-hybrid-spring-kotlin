@@ -1,5 +1,5 @@
 package dev.pedro.rag.api.chat.response.stream
 
-data class ApiChatDeltaResponse(
+data class ChatDeltaResponse(
     val content: String,
 )
