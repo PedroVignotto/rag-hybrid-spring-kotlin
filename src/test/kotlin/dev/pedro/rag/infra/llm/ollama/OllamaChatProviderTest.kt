@@ -8,8 +8,8 @@ import dev.pedro.rag.domain.chat.InferenceParams
 import dev.pedro.rag.infra.llm.ollama.client.OllamaClient
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaHttpException
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatMessageRequest
+import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponse
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponseMessage
 import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatStreamChunkResponse

@@ -4,16 +4,15 @@ import dev.pedro.rag.domain.chat.ChatInput
 import dev.pedro.rag.domain.chat.ChatMessage
 import dev.pedro.rag.domain.chat.ChatRole
 import dev.pedro.rag.domain.chat.InferenceParams
+import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatMessageRequest
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatOptionsRequest
 import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatMessageRequest
 import org.assertj.core.api.Assertions.assertThat
 import kotlin.test.Test
 
 private const val MODEL = "llama3.2:3b"
 
 class OllamaChatMapperTest {
-
     @Test
     fun shouldMapChatInputToOllamaChatRequest() {
         val input =
