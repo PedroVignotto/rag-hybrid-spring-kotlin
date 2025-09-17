@@ -1,6 +1,10 @@
 package dev.pedro.rag.infra.llm.ollama.health
 
 import dev.pedro.rag.config.llm.LlmProperties
+import dev.pedro.rag.infra.observability.health.HealthDetailsKeys.ENDPOINT
+import dev.pedro.rag.infra.observability.health.HealthDetailsKeys.MODEL
+import dev.pedro.rag.infra.observability.health.HealthDetailsKeys.PROVIDER
+import dev.pedro.rag.infra.observability.health.HealthDetailsKeys.STATUS
 import org.springframework.boot.actuate.health.Health
 import org.springframework.boot.actuate.health.HealthIndicator
 import java.net.URI
@@ -57,7 +61,7 @@ class OllamaHealthIndicator(
     private fun buildUpHealth(): Health =
         Health.up()
             .withProviderDetails()
-            .withDetail("endpoint", TAGS_PATH)
+            .withDetail(ENDPOINT, TAGS_PATH)
             .build()
 
     private fun buildDownHealth(
@@ -65,16 +69,16 @@ class OllamaHealthIndicator(
         exception: Throwable? = null,
     ): Health {
         val builder = if (exception != null) Health.down(exception) else Health.down()
-        statusCode?.let { builder.withDetail("status", it) }
+        statusCode?.let { builder.withDetail(STATUS, it) }
         return builder
             .withProviderDetails()
-            .withDetail("endpoint", TAGS_PATH)
+            .withDetail(ENDPOINT, TAGS_PATH)
             .build()
     }
 
     private fun Health.Builder.withProviderDetails(): Health.Builder =
-        this.withDetail("provider", props.ollama.providerTag)
-            .withDetail("model", props.ollama.model)
+        this.withDetail(PROVIDER, props.ollama.providerTag)
+            .withDetail(MODEL, props.ollama.model)
 
     private fun joinUri(base: URI): URI {
         val b = base.toString().trimEnd('/')
