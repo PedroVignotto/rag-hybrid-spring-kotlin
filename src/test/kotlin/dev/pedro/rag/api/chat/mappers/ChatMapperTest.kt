@@ -14,10 +14,9 @@ import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
 class ChatMapperTest {
-
     @Test
     fun shouldMapRequestToDomainWithExplicitParams() {
-        val api =
+        val request =
             ChatRequest(
                 messages =
                     listOf(
@@ -38,14 +37,14 @@ class ChatMapperTest {
                 params = InferenceParams(temperature = 0.3, topP = 0.8, maxTokens = 128),
             )
 
-        val actual = api.toDomain()
+        val actual = request.toDomain()
 
         assertThat(actual).usingRecursiveComparison().isEqualTo(expected)
     }
 
     @Test
     fun shouldMapNullParamsToDomainDefaults() {
-        val api =
+        val request =
             ChatRequest(
                 messages = listOf(ChatMessageRequest("user", "Hello")),
                 params = null,
@@ -56,33 +55,35 @@ class ChatMapperTest {
                 params = InferenceParams(),
             )
 
-        val actual = api.toDomain()
+        val actual = request.toDomain()
 
         assertThat(actual).usingRecursiveComparison().isEqualTo(expected)
     }
 
     @Test
     fun shouldFallbackMissingParamFieldsToDefaults() {
-        val api =
+        val request =
             ChatRequest(
                 messages = listOf(ChatMessageRequest("user", "Hello")),
-                params = ChatParamsRequest(
-                    temperature = 0.5,
-                    topP = null,
-                    maxTokens = null,
-                ),
+                params =
+                    ChatParamsRequest(
+                        temperature = 0.5,
+                        topP = null,
+                        maxTokens = null,
+                    ),
             )
         val expected =
             ChatInput(
                 messages = listOf(ChatMessage(ChatRole.USER, "Hello")),
-                params = InferenceParams(
-                    temperature = 0.5,
-                    topP = 0.9,
-                    maxTokens = 512,
-                ),
+                params =
+                    InferenceParams(
+                        temperature = 0.5,
+                        topP = 0.9,
+                        maxTokens = 512,
+                    ),
             )
 
-        val actual = api.toDomain()
+        val actual = request.toDomain()
 
         assertThat(actual).usingRecursiveComparison().isEqualTo(expected)
     }
@@ -99,12 +100,12 @@ class ChatMapperTest {
 
     @Test
     fun shouldFailOnInvalidRole() {
-        val api =
+        val request =
             ChatRequest(
                 messages = listOf(ChatMessageRequest("moderator", "hi")),
                 params = null,
             )
 
-        assertFailsWith<IllegalArgumentException> { api.toDomain() }
+        assertFailsWith<IllegalArgumentException> { request.toDomain() }
     }
 }

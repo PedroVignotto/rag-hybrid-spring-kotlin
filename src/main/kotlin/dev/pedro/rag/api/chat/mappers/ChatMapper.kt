@@ -26,8 +26,8 @@ private fun ChatParamsRequest?.toDomain(): InferenceParams =
     InferenceParams().let { default ->
         InferenceParams(
             temperature = this?.temperature ?: default.temperature,
-            topP       = this?.topP       ?: default.topP,
-            maxTokens  = this?.maxTokens  ?: default.maxTokens,
+            topP = this?.topP ?: default.topP,
+            maxTokens = this?.maxTokens ?: default.maxTokens,
         )
     }
 
@@ -39,5 +39,4 @@ private fun String.toDomain(): ChatRole =
         else -> throw IllegalArgumentException("Invalid role: '$this' (expected system|user|assistant)")
     }
 
-fun ChatOutput.toResponse(): ChatResponse =
-    ChatResponse(content = this.content)
+fun ChatOutput.toResponse(): ChatResponse = ChatResponse(content = this.content)
