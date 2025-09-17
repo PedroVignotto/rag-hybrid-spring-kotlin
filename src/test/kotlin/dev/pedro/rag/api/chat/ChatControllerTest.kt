@@ -172,7 +172,7 @@ class ChatControllerTest : IntegrationTest() {
                     currentName = line.removePrefix("event:").trim()
                 }
                 line.startsWith("data:") -> dataBuf.append(line.removePrefix("data:").trim())
-                line.isBlank() -> { /* ignora separadores */ }
+                line.isBlank() -> {}
             }
         }
         flush()
