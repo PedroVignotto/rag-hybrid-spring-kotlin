@@ -11,9 +11,9 @@ import org.springframework.context.annotation.Configuration
 @OpenAPIDefinition(
     info =
         Info(
-            title = "RAG Hybrid — Chat API",
+            title = "RAG Hybrid — API",
             version = "v1",
-            description = "Endpoints de chat (sync e stream) para LLM",
+            description = "Provider-agnostic API for LLM chat (sync/stream) and retrieval. Includes endpoints for chat, document ingestion, and search with stable, versioned schemas.",
         ),
     servers = [Server(url = "/", description = "Local")],
 )
