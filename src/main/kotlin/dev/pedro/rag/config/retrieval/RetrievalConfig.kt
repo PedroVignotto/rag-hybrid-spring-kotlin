@@ -8,7 +8,10 @@ import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.application.retrieval.search.usecase.DefaultSearchUseCase
 import dev.pedro.rag.application.retrieval.search.usecase.SearchUseCase
 import dev.pedro.rag.infra.retrieval.chunker.SimpleChunker
+import dev.pedro.rag.infra.retrieval.metrics.MetricsIngestUseCase
+import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics
 import dev.pedro.rag.infra.retrieval.vectorstore.memory.InMemoryVectorStore
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -21,6 +24,9 @@ class RetrievalConfig {
 
     @Bean
     fun vectorStorePort(): VectorStorePort = InMemoryVectorStore()
+
+    @Bean
+    fun retrievalMetrics(registry: MeterRegistry): RetrievalMetrics = RetrievalMetrics(registry)
 
     @Bean("ingestUseCaseCore")
     fun ingestUseCaseCore(
@@ -38,7 +44,14 @@ class RetrievalConfig {
     @Primary
     fun ingestUseCase(
         @Qualifier("ingestUseCaseCore") core: IngestUseCase,
-    ): IngestUseCase = core
+        metrics: RetrievalMetrics,
+        embedPort: EmbedPort,
+    ): IngestUseCase =
+        MetricsIngestUseCase(
+            delegate = core,
+            metrics = metrics,
+            embedPort = embedPort,
+        )
 
     @Bean("searchUseCaseCore")
     fun searchUseCaseCore(
