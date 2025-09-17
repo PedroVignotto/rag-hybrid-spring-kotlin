@@ -1,4 +1,4 @@
-package dev.pedro.rag.infra.observability
+package dev.pedro.rag.infra.observability.metrics
 
 object MetricsCommon {
     const val TAG_PROVIDER = "provider"

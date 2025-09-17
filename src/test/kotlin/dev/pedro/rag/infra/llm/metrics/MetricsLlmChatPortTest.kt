@@ -15,11 +15,11 @@ import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TAG_TOKEN_TYPE
 import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TAG_TYPE
 import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TOKEN_TYPE_COMPLETION
 import dev.pedro.rag.infra.llm.metrics.LlmMetrics.Companion.TOKEN_TYPE_PROMPT
-import dev.pedro.rag.infra.observability.MetricsCommon.STATUS_ERROR
-import dev.pedro.rag.infra.observability.MetricsCommon.STATUS_SUCCESS
-import dev.pedro.rag.infra.observability.MetricsCommon.TAG_MODEL
-import dev.pedro.rag.infra.observability.MetricsCommon.TAG_PROVIDER
-import dev.pedro.rag.infra.observability.MetricsCommon.TAG_STATUS
+import dev.pedro.rag.infra.observability.metrics.MetricsCommon.STATUS_ERROR
+import dev.pedro.rag.infra.observability.metrics.MetricsCommon.STATUS_SUCCESS
+import dev.pedro.rag.infra.observability.metrics.MetricsCommon.TAG_MODEL
+import dev.pedro.rag.infra.observability.metrics.MetricsCommon.TAG_PROVIDER
+import dev.pedro.rag.infra.observability.metrics.MetricsCommon.TAG_STATUS
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.mockk

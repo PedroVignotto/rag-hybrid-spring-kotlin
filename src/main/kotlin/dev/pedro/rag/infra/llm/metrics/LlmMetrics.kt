@@ -1,10 +1,10 @@
 package dev.pedro.rag.infra.llm.metrics
 
-import dev.pedro.rag.infra.observability.MetricsCommon.DEFAULT_PERCENTILES
-import dev.pedro.rag.infra.observability.MetricsCommon.TAG_MODEL
-import dev.pedro.rag.infra.observability.MetricsCommon.TAG_PROVIDER
-import dev.pedro.rag.infra.observability.MetricsCommon.TAG_STATUS
-import dev.pedro.rag.infra.observability.MetricsCommon.TAG_UPSTREAM_STATUS
+import dev.pedro.rag.infra.observability.metrics.MetricsCommon.DEFAULT_PERCENTILES
+import dev.pedro.rag.infra.observability.metrics.MetricsCommon.TAG_MODEL
+import dev.pedro.rag.infra.observability.metrics.MetricsCommon.TAG_PROVIDER
+import dev.pedro.rag.infra.observability.metrics.MetricsCommon.TAG_STATUS
+import dev.pedro.rag.infra.observability.metrics.MetricsCommon.TAG_UPSTREAM_STATUS
 import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.DistributionSummary
 import io.micrometer.core.instrument.MeterRegistry
