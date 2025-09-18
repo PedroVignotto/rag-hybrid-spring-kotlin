@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration
 
 @Configuration
 @EnableConfigurationProperties(RetrievalProperties::class)
-class EmbeddingConfig(private val props: RetrievalProperties) {
+class RetrievalEmbeddingConfig(private val props: RetrievalProperties) {
     @Bean
     fun embedPort(): EmbedPort {
         val spec =
