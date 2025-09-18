@@ -1,8 +1,8 @@
 package dev.pedro.rag.infra.llm.ollama.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
-import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import dev.pedro.rag.infra.llm.ollama.chat.response.OllamaChatStreamChunkResponse
+import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import java.io.BufferedReader
 import java.io.InputStream
 import java.io.InputStreamReader

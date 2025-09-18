@@ -5,12 +5,12 @@ import dev.pedro.rag.domain.chat.ChatMessage
 import dev.pedro.rag.domain.chat.ChatRole
 import dev.pedro.rag.domain.chat.ChatUsage
 import dev.pedro.rag.domain.chat.InferenceParams
+import dev.pedro.rag.infra.llm.ollama.chat.client.OllamaClient
 import dev.pedro.rag.infra.llm.ollama.chat.request.OllamaChatMessageRequest
 import dev.pedro.rag.infra.llm.ollama.chat.request.OllamaChatRequest
 import dev.pedro.rag.infra.llm.ollama.chat.response.OllamaChatMessageResponse
 import dev.pedro.rag.infra.llm.ollama.chat.response.OllamaChatResponse
 import dev.pedro.rag.infra.llm.ollama.chat.response.OllamaChatStreamChunkResponse
-import dev.pedro.rag.infra.llm.ollama.chat.client.OllamaClient
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaHttpException
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import io.mockk.every

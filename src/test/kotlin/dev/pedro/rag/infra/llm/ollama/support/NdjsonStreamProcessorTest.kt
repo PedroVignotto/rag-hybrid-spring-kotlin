@@ -2,8 +2,8 @@ package dev.pedro.rag.infra.llm.ollama.support
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.registerKotlinModule
-import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import dev.pedro.rag.infra.llm.ollama.chat.response.OllamaChatStreamChunkResponse
+import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.just
