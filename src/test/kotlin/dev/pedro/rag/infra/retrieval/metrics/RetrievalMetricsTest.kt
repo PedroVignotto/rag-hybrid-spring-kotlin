@@ -216,10 +216,14 @@ class RetrievalMetricsTest {
         val deletedSummary =
             registry.find(METRIC_DELETED)
                 .tags(
-                    TAG_PROVIDER, provider,
-                    TAG_MODEL, model,
-                    TAG_DIM, dim.toString(),
-                    TAG_NORMALIZED, normalized.toString(),
+                    TAG_PROVIDER,
+                    provider,
+                    TAG_MODEL,
+                    model,
+                    TAG_DIM,
+                    dim.toString(),
+                    TAG_NORMALIZED,
+                    normalized.toString(),
                 )
                 .summary()
         assertThat(deletedSummary).isNotNull

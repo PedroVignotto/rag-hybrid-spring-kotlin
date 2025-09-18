@@ -13,7 +13,6 @@ class MetricsDeleteUseCase(
     private val metrics: RetrievalMetrics,
     private val embedPort: EmbedPort,
 ) : DeleteUseCase {
-
     override fun handle(documentId: DocumentId): DeleteOutput {
         val spec = embedPort.spec()
         val start = System.nanoTime()

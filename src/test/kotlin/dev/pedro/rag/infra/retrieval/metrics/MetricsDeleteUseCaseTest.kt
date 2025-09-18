@@ -15,10 +15,10 @@ import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.METRIC_E
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.METRIC_LATENCY
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.OP_DELETE
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.TAG_DIM
+import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.TAG_ERROR_TYPE
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.TAG_NORMALIZED
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.TAG_OP
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.TAG_STAGE
-import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.TAG_ERROR_TYPE
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
@@ -95,10 +95,14 @@ class MetricsDeleteUseCaseTest(
         val deletedSummary =
             registry.find(METRIC_DELETED)
                 .tags(
-                    TAG_PROVIDER, spec.provider,
-                    TAG_MODEL, spec.model,
-                    TAG_DIM, spec.dim.toString(),
-                    TAG_NORMALIZED, spec.normalized.toString(),
+                    TAG_PROVIDER,
+                    spec.provider,
+                    TAG_MODEL,
+                    spec.model,
+                    TAG_DIM,
+                    spec.dim.toString(),
+                    TAG_NORMALIZED,
+                    spec.normalized.toString(),
                 )
                 .summary()
         assertThat(deletedSummary).isNotNull
