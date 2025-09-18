@@ -2,9 +2,11 @@ package dev.pedro.rag.api.retrieval.mappers
 
 import dev.pedro.rag.api.retrieval.request.IngestRequest
 import dev.pedro.rag.api.retrieval.request.SearchRequest
+import dev.pedro.rag.api.retrieval.response.DeleteResponse
 import dev.pedro.rag.api.retrieval.response.IngestResponse
 import dev.pedro.rag.api.retrieval.response.SearchMatchResponse
 import dev.pedro.rag.api.retrieval.response.SearchResponse
+import dev.pedro.rag.application.retrieval.delete.dto.DeleteOutput
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestInput
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestOutput
 import dev.pedro.rag.application.retrieval.search.dto.SearchInput
@@ -114,6 +116,16 @@ class RetrievalMapperTest {
                         ),
                     ),
             )
+
+        val actual = domain.toResponse()
+
+        assertThat(actual).usingRecursiveComparison().isEqualTo(expected)
+    }
+
+    @Test
+    fun `should map DeleteOutput to DeleteResponse`() {
+        val domain = DeleteOutput(deleted = 2)
+        val expected = DeleteResponse(deleted = 2)
 
         val actual = domain.toResponse()
 
