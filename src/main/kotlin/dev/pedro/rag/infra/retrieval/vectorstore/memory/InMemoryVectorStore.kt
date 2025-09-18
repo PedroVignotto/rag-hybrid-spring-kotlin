@@ -48,10 +48,13 @@ class InMemoryVectorStore : VectorStorePort {
     override fun deleteByDocumentId(
         collection: CollectionSpec,
         documentId: DocumentId,
-    ) {
-        val entries = indices[collection] ?: return
-        synchronized(entries) {
+    ): Int {
+        val entries = indices[collection] ?: return 0
+        return synchronized(entries) {
+            if (entries.isEmpty()) return@synchronized 0
+            val before = entries.size
             entries.removeAll { it.documentId == documentId }
+            before - entries.size
         }
     }
 
