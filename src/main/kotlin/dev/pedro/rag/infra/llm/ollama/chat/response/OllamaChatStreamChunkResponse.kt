@@ -1,4 +1,4 @@
-package dev.pedro.rag.infra.llm.ollama.model.response
+package dev.pedro.rag.infra.llm.ollama.chat.response
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.databind.PropertyNamingStrategies

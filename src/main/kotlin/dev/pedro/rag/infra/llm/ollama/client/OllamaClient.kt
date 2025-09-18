@@ -5,9 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import dev.pedro.rag.config.llm.LlmProperties
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaHttpException
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest
-import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatResponse
-import dev.pedro.rag.infra.llm.ollama.model.response.OllamaChatStreamChunkResponse
+import dev.pedro.rag.infra.llm.ollama.chat.request.OllamaChatRequest
+import dev.pedro.rag.infra.llm.ollama.chat.response.OllamaChatResponse
+import dev.pedro.rag.infra.llm.ollama.chat.response.OllamaChatStreamChunkResponse
 import dev.pedro.rag.infra.llm.ollama.support.NdjsonStreamProcessor
 import java.io.InputStream
 import java.net.URI

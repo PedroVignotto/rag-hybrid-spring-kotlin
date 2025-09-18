@@ -4,9 +4,9 @@ import dev.pedro.rag.domain.chat.ChatInput
 import dev.pedro.rag.domain.chat.ChatMessage
 import dev.pedro.rag.domain.chat.ChatRole
 import dev.pedro.rag.domain.chat.InferenceParams
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatMessageRequest
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatOptionsRequest
-import dev.pedro.rag.infra.llm.ollama.model.request.OllamaChatRequest
+import dev.pedro.rag.infra.llm.ollama.chat.request.OllamaChatMessageRequest
+import dev.pedro.rag.infra.llm.ollama.chat.request.OllamaChatOptionsRequest
+import dev.pedro.rag.infra.llm.ollama.chat.request.OllamaChatRequest
 import org.assertj.core.api.Assertions.assertThat
 import kotlin.test.Test
 
