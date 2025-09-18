@@ -58,3 +58,7 @@ guardrails:
         capacity: 6
         refill: 6
         period: 10s
+      "/v1/retrieval/{documentId}":
+        capacity: 2
+        refill: 2
+        period: 60s
