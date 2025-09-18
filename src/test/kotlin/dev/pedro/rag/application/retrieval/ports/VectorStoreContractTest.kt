@@ -87,27 +87,6 @@ abstract class VectorStoreContractTest {
     }
 
     @Test
-    fun `deleteByDocumentId should remove all entries of a document`() {
-        val sut = sut()
-        val col = collection()
-        sut.upsert(
-            col,
-            DocumentId("doc4"),
-            listOf(
-                chunk("D1") to vec(floatArrayOf(0f, 1f, 0f), true),
-                chunk("D2") to vec(floatArrayOf(0f, 1f, 0f), true),
-            ),
-        )
-        assertTrue(sut.count(col) >= 2)
-
-        sut.deleteByDocumentId(col, DocumentId("doc4"))
-
-        assertEquals(0, sut.count(col))
-        val results = sut.search(col, vec(floatArrayOf(0f, 1f, 0f), true), topK = 3, filter = null)
-        assertTrue(results.isEmpty())
-    }
-
-    @Test
     fun `cosine path should work when vectors are not normalized`() {
         val sut = sut()
         val col = collection()
@@ -183,7 +162,31 @@ abstract class VectorStoreContractTest {
     }
 
     @Test
-    fun `deleteByDocumentId of absent document should keep state unchanged`() {
+    fun `deleteByDocumentId should remove all entries and return the deleted count`() {
+        val sut = sut()
+        val col = collection()
+        sut.upsert(
+            col,
+            DocumentId("doc4"),
+            listOf(
+                chunk("D1") to vec(floatArrayOf(0f, 1f, 0f), true),
+                chunk("D2") to vec(floatArrayOf(0f, 1f, 0f), true),
+            ),
+        )
+        val before = sut.count(col)
+
+        val deleted = sut.deleteByDocumentId(col, DocumentId("doc4"))
+        val results = sut.search(col, vec(floatArrayOf(0f, 1f, 0f), true), topK = 3, filter = null)
+        val after = sut.count(col)
+
+        assertTrue(before >= 2L)
+        assertEquals(2, deleted)
+        assertTrue(results.isEmpty())
+        assertEquals(0L, after)
+    }
+
+    @Test
+    fun `deleteByDocumentId should be a no-op for absent documentId and return 0`() {
         val sut = sut()
         val col = collection()
         sut.upsert(
@@ -193,9 +196,25 @@ abstract class VectorStoreContractTest {
         )
         val before = sut.count(col)
 
-        sut.deleteByDocumentId(col, DocumentId("does-not-exist"))
+        val deleted = sut.deleteByDocumentId(col, DocumentId("does-not-exist"))
         val after = sut.count(col)
 
+        assertEquals(0, deleted)
+        assertEquals(before, after)
+    }
+
+    @Test
+    fun `deleteByDocumentId should be idempotent for absent documentId`() {
+        val sut = sut()
+        val col = collection()
+        val before = sut.count(col)
+
+        val first = sut.deleteByDocumentId(col, DocumentId("nope"))
+        val second = sut.deleteByDocumentId(col, DocumentId("nope"))
+        val after = sut.count(col)
+
+        assertEquals(0, first)
+        assertEquals(0, second)
         assertEquals(before, after)
     }
 
