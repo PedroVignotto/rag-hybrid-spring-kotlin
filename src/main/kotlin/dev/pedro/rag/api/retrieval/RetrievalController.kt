@@ -52,6 +52,10 @@ class RetrievalController(
     ): SearchResponse = searchUseCase.search(request.toInput()).toResponse()
 
     @DeleteMapping("/{documentId}")
+    @Operation(
+        summary = "Delete by documentId",
+        description = "Removes all chunks associated with a documentId in the active collection (idempotent).",
+    )
     fun deleteByDocumentId(
         @PathVariable @NotBlank documentId: String,
     ): DeleteResponse = deleteUseCase.handle(DocumentId(documentId)).toResponse()
