@@ -8,6 +8,7 @@ import dev.pedro.rag.infra.observability.metrics.MetricsCommon.TAG_STATUS
 import dev.pedro.rag.infra.observability.metrics.MetricsCommon.TAG_UPSTREAM_STATUS
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.METRIC_CHUNKS
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.METRIC_CHUNK_SIZE
+import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.METRIC_DELETED
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.METRIC_ERRORS
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.METRIC_HITS
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics.Companion.METRIC_K
@@ -206,5 +207,22 @@ class RetrievalMetricsTest {
                 .gauge()
         assertThat(storeSizeGauge).isNotNull
         assertThat(storeSizeGauge!!.value()).isEqualTo(7.0)
+    }
+
+    @Test
+    fun `should record deleted`() {
+        sut.recordDeleted(provider, model, dim, normalized, deleted = 3)
+
+        val deletedSummary =
+            registry.find(METRIC_DELETED)
+                .tags(
+                    TAG_PROVIDER, provider,
+                    TAG_MODEL, model,
+                    TAG_DIM, dim.toString(),
+                    TAG_NORMALIZED, normalized.toString(),
+                )
+                .summary()
+        assertThat(deletedSummary).isNotNull
+        assertThat(deletedSummary!!.count()).isGreaterThan(0)
     }
 }
