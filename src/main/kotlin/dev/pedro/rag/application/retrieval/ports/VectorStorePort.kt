@@ -23,7 +23,7 @@ interface VectorStorePort {
     fun deleteByDocumentId(
         collection: CollectionSpec,
         documentId: DocumentId,
-    )
+    ): Int
 
     fun count(collection: CollectionSpec): Long
 }
