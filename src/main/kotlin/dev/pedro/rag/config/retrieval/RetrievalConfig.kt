@@ -1,5 +1,7 @@
 package dev.pedro.rag.config.retrieval
 
+import dev.pedro.rag.application.retrieval.delete.usecase.DefaultDeleteUseCase
+import dev.pedro.rag.application.retrieval.delete.usecase.DeleteUseCase
 import dev.pedro.rag.application.retrieval.ingest.usecase.DefaultIngestUseCase
 import dev.pedro.rag.application.retrieval.ingest.usecase.IngestUseCase
 import dev.pedro.rag.application.retrieval.ports.Chunker
@@ -7,6 +9,7 @@ import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.application.retrieval.search.usecase.DefaultSearchUseCase
 import dev.pedro.rag.application.retrieval.search.usecase.SearchUseCase
+import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.infra.retrieval.chunker.SimpleChunker
 import dev.pedro.rag.infra.retrieval.metrics.MetricsIngestUseCase
 import dev.pedro.rag.infra.retrieval.metrics.MetricsSearchUseCase
@@ -76,4 +79,20 @@ class RetrievalConfig {
             metrics = metrics,
             embedPort = embedPort,
         )
+
+    @Bean("deleteUseCaseCore")
+    fun deleteUseCaseCore(
+        vectorStorePort: VectorStorePort,
+        collectionSpec: CollectionSpec,
+    ): DeleteUseCase =
+        DefaultDeleteUseCase(
+            vectorStore = vectorStorePort,
+            activeCollection = collectionSpec,
+        )
+
+    @Bean
+    @Primary
+    fun deleteUseCase(
+        @Qualifier("deleteUseCaseCore") core: DeleteUseCase,
+    ): DeleteUseCase = core
 }
