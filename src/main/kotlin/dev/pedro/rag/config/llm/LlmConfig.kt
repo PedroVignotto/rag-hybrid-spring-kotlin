@@ -7,7 +7,7 @@ import dev.pedro.rag.application.chat.usecase.ChatUseCase
 import dev.pedro.rag.application.chat.usecase.DefaultChatUseCase
 import dev.pedro.rag.infra.llm.metrics.LlmMetrics
 import dev.pedro.rag.infra.llm.metrics.MetricsLlmChatPort
-import dev.pedro.rag.infra.llm.ollama.OllamaChatProvider
+import dev.pedro.rag.infra.llm.ollama.chat.provider.OllamaChatProvider
 import dev.pedro.rag.infra.llm.ollama.client.OllamaClient
 import dev.pedro.rag.infra.llm.ollama.support.NdjsonStreamProcessor
 import io.micrometer.core.instrument.MeterRegistry
