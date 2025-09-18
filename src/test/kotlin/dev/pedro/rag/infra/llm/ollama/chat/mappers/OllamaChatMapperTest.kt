@@ -1,4 +1,4 @@
-package dev.pedro.rag.infra.llm.ollama.mappers
+package dev.pedro.rag.infra.llm.ollama.chat.mappers
 
 import dev.pedro.rag.domain.chat.ChatInput
 import dev.pedro.rag.domain.chat.ChatMessage

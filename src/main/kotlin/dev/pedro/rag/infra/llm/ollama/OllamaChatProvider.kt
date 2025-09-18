@@ -6,7 +6,7 @@ import dev.pedro.rag.domain.chat.ChatOutput
 import dev.pedro.rag.domain.chat.ChatUsage
 import dev.pedro.rag.infra.llm.ollama.client.OllamaClient
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
-import dev.pedro.rag.infra.llm.ollama.mappers.toOllamaChatRequest
+import dev.pedro.rag.infra.llm.ollama.chat.mappers.toOllamaChatRequest
 import java.util.concurrent.TimeUnit
 
 class OllamaChatProvider(
