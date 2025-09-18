@@ -76,7 +76,6 @@ class RetrievalMetricsTest {
                     TAG_STATUS, STATUS_ERROR,
                 )
                 .timer()
-
         assertThat(latencySuccessTimer).isNotNull
         assertThat(latencySuccessTimer!!.count()).isGreaterThan(0)
         assertThat(latencyErrorTimer).isNotNull
@@ -151,7 +150,6 @@ class RetrievalMetricsTest {
             registry.find(METRIC_CHUNK_SIZE)
                 .tags(TAG_PROVIDER, provider, TAG_MODEL, model, TAG_DIM, dim.toString(), TAG_NORMALIZED, normalized.toString())
                 .summary()
-
         assertThat(chunksSummary).isNotNull
         assertThat(chunksSummary!!.count()).isGreaterThan(0)
         assertThat(chunkSizeSummary).isNotNull
@@ -171,7 +169,6 @@ class RetrievalMetricsTest {
             registry.find(METRIC_HITS)
                 .tags(TAG_PROVIDER, provider, TAG_MODEL, model, TAG_DIM, dim.toString(), TAG_NORMALIZED, normalized.toString())
                 .summary()
-
         assertThat(kSummary).isNotNull
         assertThat(kSummary!!.count()).isGreaterThan(0)
         assertThat(hitsSummary).isNotNull
@@ -207,7 +204,6 @@ class RetrievalMetricsTest {
             registry.find(METRIC_STORE_SIZE)
                 .tags(TAG_PROVIDER, provider, TAG_MODEL, model, TAG_DIM, dim.toString(), TAG_COLLECTION, collection)
                 .gauge()
-
         assertThat(storeSizeGauge).isNotNull
         assertThat(storeSizeGauge!!.value()).isEqualTo(7.0)
     }
