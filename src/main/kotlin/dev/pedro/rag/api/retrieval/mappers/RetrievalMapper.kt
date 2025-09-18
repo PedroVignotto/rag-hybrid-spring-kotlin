@@ -2,9 +2,11 @@ package dev.pedro.rag.api.retrieval.mappers
 
 import dev.pedro.rag.api.retrieval.request.IngestRequest
 import dev.pedro.rag.api.retrieval.request.SearchRequest
+import dev.pedro.rag.api.retrieval.response.DeleteResponse
 import dev.pedro.rag.api.retrieval.response.IngestResponse
 import dev.pedro.rag.api.retrieval.response.SearchMatchResponse
 import dev.pedro.rag.api.retrieval.response.SearchResponse
+import dev.pedro.rag.application.retrieval.delete.dto.DeleteOutput
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestInput
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestOutput
 import dev.pedro.rag.application.retrieval.search.dto.SearchInput
@@ -43,3 +45,5 @@ fun SearchMatch.toResponse(): SearchMatchResponse =
         score = score,
         metadata = chunk.metadata,
     )
+
+fun DeleteOutput.toResponse(): DeleteResponse = DeleteResponse(deleted = deleted)
