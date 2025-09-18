@@ -24,6 +24,7 @@ class RetrievalMetrics(
         const val METRIC_CHUNK_SIZE = "retrieval.chunk_size"
         const val METRIC_K = "retrieval.k"
         const val METRIC_HITS = "retrieval.hits"
+        const val METRIC_DELETED = "retrieval.deleted"
         const val METRIC_STORE_SIZE = "retrieval.store.size"
 
         const val TAG_OP = "op"
@@ -86,9 +87,7 @@ class RetrievalMetrics(
         dim: Int,
         normalized: Boolean,
         chunks: Int,
-    ) {
-        summary(METRIC_CHUNKS, provider, model, dim, normalized).record(chunks.toDouble())
-    }
+    ) = summary(METRIC_CHUNKS, provider, model, dim, normalized).record(chunks.toDouble())
 
     fun recordChunkSize(
         provider: String,
@@ -96,9 +95,7 @@ class RetrievalMetrics(
         dim: Int,
         normalized: Boolean,
         sizeChars: Int,
-    ) {
-        summary(METRIC_CHUNK_SIZE, provider, model, dim, normalized).record(sizeChars.toDouble())
-    }
+    ) = summary(METRIC_CHUNK_SIZE, provider, model, dim, normalized).record(sizeChars.toDouble())
 
     fun recordK(
         provider: String,
@@ -106,9 +103,7 @@ class RetrievalMetrics(
         dim: Int,
         normalized: Boolean,
         k: Int,
-    ) {
-        summary(METRIC_K, provider, model, dim, normalized).record(k.toDouble())
-    }
+    ) = summary(METRIC_K, provider, model, dim, normalized).record(k.toDouble())
 
     fun recordHits(
         provider: String,
@@ -116,9 +111,7 @@ class RetrievalMetrics(
         dim: Int,
         normalized: Boolean,
         hits: Int,
-    ) {
-        summary(METRIC_HITS, provider, model, dim, normalized).record(hits.toDouble())
-    }
+    ) = summary(METRIC_HITS, provider, model, dim, normalized).record(hits.toDouble())
 
     fun setStoreSize(
         provider: String,
@@ -163,6 +156,14 @@ class RetrievalMetrics(
             }
         ref.addAndGet(delta)
     }
+
+    fun recordDeleted(
+        provider: String,
+        model: String,
+        dim: Int,
+        normalized: Boolean,
+        deleted: Int,
+    ) = summary(METRIC_DELETED, provider, model, dim, normalized).record(deleted.toDouble())
 
     private fun summary(
         name: String,
