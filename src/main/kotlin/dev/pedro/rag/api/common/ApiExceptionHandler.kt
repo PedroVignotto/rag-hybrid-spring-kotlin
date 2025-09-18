@@ -2,6 +2,7 @@ package dev.pedro.rag.api.common
 
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaHttpException
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
+import jakarta.validation.ConstraintViolationException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.http.converter.HttpMessageNotReadableException
@@ -18,6 +19,16 @@ class ApiExceptionHandler {
             ex.bindingResult.allErrors.map { err ->
                 val field = (err as? FieldError)?.field ?: err.objectName
                 mapOf("field" to field, "message" to (err.defaultMessage ?: "invalid"))
+            }
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(mapOf("errors" to errors))
+    }
+
+    @ExceptionHandler(ConstraintViolationException::class)
+    fun handleConstraintViolation(ex: ConstraintViolationException): ResponseEntity<Any> {
+        val errors =
+            ex.constraintViolations.map { v ->
+                mapOf("field" to v.propertyPath.toString(), "message" to (v.message ?: "invalid"))
             }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(mapOf("errors" to errors))
