@@ -17,11 +17,13 @@ import okhttp3.mockwebserver.RecordedRequest
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
+import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
@@ -49,14 +51,18 @@ class OllamaChatHttpClientTest {
         }
     }
 
-    @Autowired
-    lateinit var mapper: ObjectMapper
+    @Autowired lateinit var mapper: ObjectMapper
 
-    @Autowired
-    lateinit var props: LlmProperties
+    @Autowired lateinit var props: LlmProperties
 
-    @Autowired
-    lateinit var sut: OllamaChatHttpClient
+    @Autowired lateinit var sut: OllamaChatHttpClient
+
+    @BeforeEach
+    fun drainQueue() {
+        while (true) {
+            server.takeRequest(10, TimeUnit.MILLISECONDS) ?: break
+        }
+    }
 
     @Test
     fun `should POST to api-chat and return parsed content with keep_alive injected`() {
@@ -127,7 +133,6 @@ class OllamaChatHttpClientTest {
             }
         assertThat(response.status).isEqualTo(500)
         assertThat(response.responseBody).contains("boom")
-        server.takeRequest()
     }
 
     @Test
@@ -207,7 +212,6 @@ class OllamaChatHttpClientTest {
             }
         assertThat(response.status).isEqualTo(502)
         assertThat(response.responseBody).contains("upstream bad gateway")
-        server.takeRequest()
     }
 
     @Test
