@@ -1,10 +1,10 @@
-package dev.pedro.rag.infra.retrieval.embed
+package dev.pedro.rag.infra.retrieval.embedding
 
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.EmbedPortContractTest
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
-import dev.pedro.rag.infra.retrieval.embed.decorator.NormalizingEmbedPort
-import dev.pedro.rag.infra.retrieval.embed.fake.FakeEmbeddingProvider
+import dev.pedro.rag.infra.retrieval.embedding.decorator.NormalizingEmbedPort
+import dev.pedro.rag.infra.retrieval.embedding.fake.FakeEmbeddingProvider
 
 class EmbeddingPipelineTest : EmbedPortContractTest() {
     override fun sutFor(normalized: Boolean): EmbedPort {

@@ -1,4 +1,4 @@
-package dev.pedro.rag.infra.retrieval.embed.fake
+package dev.pedro.rag.infra.retrieval.embedding.fake
 
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
 import org.junit.jupiter.api.Assertions.assertArrayEquals

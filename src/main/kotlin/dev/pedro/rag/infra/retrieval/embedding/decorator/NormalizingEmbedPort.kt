@@ -1,4 +1,4 @@
-package dev.pedro.rag.infra.retrieval.embed.decorator
+package dev.pedro.rag.infra.retrieval.embedding.decorator
 
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
