@@ -5,7 +5,7 @@ import dev.pedro.rag.domain.chat.ChatMessage
 import dev.pedro.rag.domain.chat.ChatRole
 import dev.pedro.rag.domain.chat.ChatUsage
 import dev.pedro.rag.domain.chat.InferenceParams
-import dev.pedro.rag.infra.llm.ollama.chat.client.OllamaClient
+import dev.pedro.rag.infra.llm.ollama.chat.client.OllamaChatHttpClient
 import dev.pedro.rag.infra.llm.ollama.chat.request.OllamaChatMessageRequest
 import dev.pedro.rag.infra.llm.ollama.chat.request.OllamaChatRequest
 import dev.pedro.rag.infra.llm.ollama.chat.response.OllamaChatMessageResponse
@@ -46,7 +46,7 @@ class OllamaChatProviderTest {
             )
     }
 
-    private val client = mockk<OllamaClient>()
+    private val client = mockk<OllamaChatHttpClient>()
     private val sut = OllamaChatProvider(client, defaultModel = MODEL)
 
     @Test

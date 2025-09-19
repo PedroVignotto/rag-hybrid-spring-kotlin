@@ -7,7 +7,7 @@ import dev.pedro.rag.application.chat.usecase.ChatUseCase
 import dev.pedro.rag.application.chat.usecase.DefaultChatUseCase
 import dev.pedro.rag.infra.llm.metrics.LlmMetrics
 import dev.pedro.rag.infra.llm.metrics.MetricsLlmChatPort
-import dev.pedro.rag.infra.llm.ollama.chat.client.OllamaClient
+import dev.pedro.rag.infra.llm.ollama.chat.client.OllamaChatHttpClient
 import dev.pedro.rag.infra.llm.ollama.chat.provider.OllamaChatProvider
 import dev.pedro.rag.infra.llm.ollama.support.NdjsonStreamProcessor
 import io.micrometer.core.instrument.MeterRegistry
@@ -38,7 +38,7 @@ class LlmConfig {
         mapper: ObjectMapper,
         props: LlmProperties,
         processor: NdjsonStreamProcessor,
-    ) = OllamaClient(
+    ) = OllamaChatHttpClient(
         http = http,
         mapper = mapper,
         properties = props.ollama,
@@ -50,7 +50,7 @@ class LlmConfig {
 
     @Bean("ollamaProvider")
     fun ollamaProvider(
-        client: OllamaClient,
+        client: OllamaChatHttpClient,
         props: LlmProperties,
     ): LlmChatPort =
         OllamaChatProvider(

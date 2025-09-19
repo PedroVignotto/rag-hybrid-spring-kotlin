@@ -11,7 +11,7 @@ import dev.pedro.rag.infra.llm.ollama.support.OllamaHttpSupport
 import java.net.URI
 import java.net.http.HttpClient
 
-class OllamaClient(
+class OllamaChatHttpClient(
     private val http: HttpClient,
     private val mapper: ObjectMapper,
     private val properties: LlmProperties.Ollama,

@@ -56,7 +56,7 @@ class OllamaClientTest {
     lateinit var props: LlmProperties
 
     @Autowired
-    lateinit var sut: OllamaClient
+    lateinit var sut: OllamaChatHttpClient
 
     @Test
     fun `should POST to api-chat and return parsed content with keep_alive injected`() {

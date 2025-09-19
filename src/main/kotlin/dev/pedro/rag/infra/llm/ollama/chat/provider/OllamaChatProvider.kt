@@ -4,13 +4,13 @@ import dev.pedro.rag.application.chat.ports.LlmChatPort
 import dev.pedro.rag.domain.chat.ChatInput
 import dev.pedro.rag.domain.chat.ChatOutput
 import dev.pedro.rag.domain.chat.ChatUsage
-import dev.pedro.rag.infra.llm.ollama.chat.client.OllamaClient
+import dev.pedro.rag.infra.llm.ollama.chat.client.OllamaChatHttpClient
 import dev.pedro.rag.infra.llm.ollama.chat.mappers.toOllamaChatRequest
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import java.util.concurrent.TimeUnit
 
 class OllamaChatProvider(
-    private val client: OllamaClient,
+    private val client: OllamaChatHttpClient,
     private val defaultModel: String,
 ) : LlmChatPort {
     override fun complete(input: ChatInput): ChatOutput {
