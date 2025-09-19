@@ -14,7 +14,7 @@ import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.springframework.beans.factory.annotation.Autowired
@@ -79,17 +79,17 @@ class OllamaClientTest {
             )
 
         val (recorded, json) = captureRequestJson()
-        Assertions.assertThat(response.message?.content).isEqualTo("ok")
-        Assertions.assertThat(recorded.path).isEqualTo("/api/chat")
-        Assertions.assertThat(recorded.method).isEqualTo("POST")
-        Assertions.assertThat(recorded.getHeader("Content-Type")).isEqualTo("application/json")
-        Assertions.assertThat(json["model"].asText()).isEqualTo(MODEL)
-        Assertions.assertThat(json["keep_alive"].asText()).isEqualTo(props.ollama.keepAlive)
-        Assertions.assertThat(json["messages"][0]["role"].asText()).isEqualTo("user")
-        Assertions.assertThat(json["messages"][0]["content"].asText()).isEqualTo("hi")
-        Assertions.assertThat(json["options"]["top_p"].asDouble()).isEqualTo(0.9)
-        Assertions.assertThat(json["options"]["num_predict"].asInt()).isEqualTo(32)
-        Assertions.assertThat(json["stream"]).isNull()
+        assertThat(response.message?.content).isEqualTo("ok")
+        assertThat(recorded.path).isEqualTo("/api/chat")
+        assertThat(recorded.method).isEqualTo("POST")
+        assertThat(recorded.getHeader("Content-Type")).isEqualTo("application/json")
+        assertThat(json["model"].asText()).isEqualTo(MODEL)
+        assertThat(json["keep_alive"].asText()).isEqualTo(props.ollama.keepAlive)
+        assertThat(json["messages"][0]["role"].asText()).isEqualTo("user")
+        assertThat(json["messages"][0]["content"].asText()).isEqualTo("hi")
+        assertThat(json["options"]["top_p"].asDouble()).isEqualTo(0.9)
+        assertThat(json["options"]["num_predict"].asInt()).isEqualTo(32)
+        assertThat(json["stream"]).isNull()
     }
 
     @Test
@@ -109,7 +109,7 @@ class OllamaClientTest {
         )
 
         val (_, json) = captureRequestJson()
-        Assertions.assertThat(json["keep_alive"].asText()).isEqualTo(props.ollama.keepAlive)
+        assertThat(json["keep_alive"].asText()).isEqualTo(props.ollama.keepAlive)
     }
 
     @Test
@@ -125,8 +125,8 @@ class OllamaClientTest {
                     ),
                 )
             }
-        Assertions.assertThat(response.status).isEqualTo(500)
-        Assertions.assertThat(response.responseBody).contains("boom")
+        assertThat(response.status).isEqualTo(500)
+        assertThat(response.responseBody).contains("boom")
         server.takeRequest()
     }
 
@@ -143,7 +143,7 @@ class OllamaClientTest {
                     ),
                 )
             }
-        Assertions.assertThat(response).hasMessage("Ollama response is missing `message.content`")
+        assertThat(response).hasMessage("Ollama response is missing `message.content`")
         server.takeRequest()
     }
 
@@ -176,18 +176,18 @@ class OllamaClientTest {
         )
 
         val (recorded, json) = captureRequestJson()
-        Assertions.assertThat(recorded.path).isEqualTo("/api/chat")
-        Assertions.assertThat(recorded.method).isEqualTo("POST")
-        Assertions.assertThat(recorded.getHeader("Content-Type")).isEqualTo("application/json")
-        Assertions.assertThat(json["model"].asText()).isEqualTo(MODEL)
-        Assertions.assertThat(json["keep_alive"].asText()).isEqualTo(props.ollama.keepAlive)
-        Assertions.assertThat(json["stream"].asBoolean()).isTrue
-        Assertions.assertThat(deltas).containsExactly("Hello", " world")
+        assertThat(recorded.path).isEqualTo("/api/chat")
+        assertThat(recorded.method).isEqualTo("POST")
+        assertThat(recorded.getHeader("Content-Type")).isEqualTo("application/json")
+        assertThat(json["model"].asText()).isEqualTo(MODEL)
+        assertThat(json["keep_alive"].asText()).isEqualTo(props.ollama.keepAlive)
+        assertThat(json["stream"].asBoolean()).isTrue
+        assertThat(deltas).containsExactly("Hello", " world")
         val lastChunk = last
-        Assertions.assertThat(lastChunk).isNotNull
-        Assertions.assertThat(lastChunk!!.done).isTrue
-        Assertions.assertThat(lastChunk.promptEvalCount).isEqualTo(12)
-        Assertions.assertThat(lastChunk.evalCount).isEqualTo(34)
+        assertThat(lastChunk).isNotNull
+        assertThat(lastChunk!!.done).isTrue
+        assertThat(lastChunk.promptEvalCount).isEqualTo(12)
+        assertThat(lastChunk.evalCount).isEqualTo(34)
     }
 
     @Test
@@ -205,8 +205,8 @@ class OllamaClientTest {
                     onDelta = {},
                 )
             }
-        Assertions.assertThat(response.status).isEqualTo(502)
-        Assertions.assertThat(response.responseBody).contains("upstream bad gateway")
+        assertThat(response.status).isEqualTo(502)
+        assertThat(response.responseBody).contains("upstream bad gateway")
         server.takeRequest()
     }
 
@@ -237,11 +237,11 @@ class OllamaClientTest {
         )
 
         val (recorded, json) = captureRequestJson()
-        Assertions.assertThat(recorded.path).isEqualTo("/api/chat")
-        Assertions.assertThat(recorded.method).isEqualTo("POST")
-        Assertions.assertThat(json["stream"].asBoolean()).isTrue
-        Assertions.assertThat(json["keep_alive"].asText()).isEqualTo(props.ollama.keepAlive)
-        Assertions.assertThat(deltas).containsExactly("A", "B")
+        assertThat(recorded.path).isEqualTo("/api/chat")
+        assertThat(recorded.method).isEqualTo("POST")
+        assertThat(json["stream"].asBoolean()).isTrue
+        assertThat(json["keep_alive"].asText()).isEqualTo(props.ollama.keepAlive)
+        assertThat(deltas).containsExactly("A", "B")
     }
 
     @Test
@@ -272,12 +272,12 @@ class OllamaClientTest {
         )
 
         val (recorded, json) = captureRequestJson()
-        Assertions.assertThat(recorded.path).isEqualTo("/api/chat")
-        Assertions.assertThat(recorded.method).isEqualTo("POST")
-        Assertions.assertThat(json["stream"].asBoolean()).isTrue
-        Assertions.assertThat(deltas).containsExactly("X", "Y")
+        assertThat(recorded.path).isEqualTo("/api/chat")
+        assertThat(recorded.method).isEqualTo("POST")
+        assertThat(json["stream"].asBoolean()).isTrue
+        assertThat(deltas).containsExactly("X", "Y")
         val lastChunk = requireNotNull(last) { "onDoneChunk must be called" }
-        Assertions.assertThat(lastChunk.done).isTrue
+        assertThat(lastChunk.done).isTrue
     }
 
     @Test
@@ -297,7 +297,7 @@ class OllamaClientTest {
         )
 
         val (_, json) = captureRequestJson()
-        Assertions.assertThat(json["messages"][0]["content"].asText()).isEqualTo(exotic)
+        assertThat(json["messages"][0]["content"].asText()).isEqualTo(exotic)
     }
 
     private fun captureRequestJson(): Pair<RecordedRequest, JsonNode> {
