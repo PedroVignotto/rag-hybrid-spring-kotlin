@@ -33,7 +33,7 @@ class LlmConfig {
     fun ndjsonStreamProcessor(mapper: ObjectMapper) = NdjsonStreamProcessor(mapper)
 
     @Bean
-    fun ollamaClient(
+    fun ollamaChatHttpClient(
         http: HttpClient,
         mapper: ObjectMapper,
         props: LlmProperties,
