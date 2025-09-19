@@ -27,7 +27,7 @@ import kotlin.test.assertFailsWith
 
 @SpringBootTest
 @ActiveProfiles("test")
-class OllamaClientTest {
+class OllamaChatHttpClientTest {
     companion object {
         private val server = MockWebServer()
         private const val MODEL = "llama3.2:3b"
