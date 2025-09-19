@@ -17,7 +17,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import org.assertj.core.api.Assertions
+import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -58,7 +58,7 @@ class OllamaChatProviderTest {
 
         val result = sut.complete(input)
 
-        Assertions.assertThat(result.content).isEqualTo("ok")
+        assertThat(result.content).isEqualTo("ok")
         assertMapped(sent = requestSlot.captured, expectedParams = params)
         verify(exactly = 1) { client.chat(any()) }
     }
@@ -74,7 +74,7 @@ class OllamaChatProviderTest {
 
         val ex = assertFailsWith<OllamaInvalidResponseException> { sut.complete(input) }
 
-        Assertions.assertThat(ex).hasMessage("Ollama response is missing `message.content`")
+        assertThat(ex).hasMessage("Ollama response is missing `message.content`")
     }
 
     @Test
@@ -107,12 +107,12 @@ class OllamaChatProviderTest {
         )
 
         assertMapped(sent = requestSlot.captured, expectedParams = params)
-        Assertions.assertThat(deltas).containsExactly("Hello", " world")
+        assertThat(deltas).containsExactly("Hello", " world")
         val u = requireNotNull(usage)
-        Assertions.assertThat(u.promptTokens).isEqualTo(12)
-        Assertions.assertThat(u.completionTokens).isEqualTo(34)
-        Assertions.assertThat(u.totalDurationMs).isEqualTo(1500)
-        Assertions.assertThat(u.loadDurationMs).isEqualTo(500)
+        assertThat(u.promptTokens).isEqualTo(12)
+        assertThat(u.completionTokens).isEqualTo(34)
+        assertThat(u.totalDurationMs).isEqualTo(1500)
+        assertThat(u.loadDurationMs).isEqualTo(500)
         verify(exactly = 1) { client.chatStream(any(), any(), any()) }
     }
 
@@ -141,10 +141,10 @@ class OllamaChatProviderTest {
         )
 
         val u = requireNotNull(usage)
-        Assertions.assertThat(u.promptTokens).isNull()
-        Assertions.assertThat(u.completionTokens).isNull()
-        Assertions.assertThat(u.totalDurationMs).isNull()
-        Assertions.assertThat(u.loadDurationMs).isNull()
+        assertThat(u.promptTokens).isNull()
+        assertThat(u.completionTokens).isNull()
+        assertThat(u.totalDurationMs).isNull()
+        assertThat(u.loadDurationMs).isNull()
     }
 
     @Test
@@ -166,7 +166,7 @@ class OllamaChatProviderTest {
             onUsage = null,
         )
 
-        Assertions.assertThat(deltas).containsExactly("A", "B")
+        assertThat(deltas).containsExactly("A", "B")
         verify(exactly = 1) { client.chatStream(any(), any(), any()) }
     }
 
@@ -177,8 +177,8 @@ class OllamaChatProviderTest {
 
         val result = assertFailsWith<OllamaHttpException> { sut.complete(input) }
 
-        Assertions.assertThat(result.status).isEqualTo(502)
-        Assertions.assertThat(result.responseBody).contains("bad gateway")
+        assertThat(result.status).isEqualTo(502)
+        assertThat(result.responseBody).contains("bad gateway")
     }
 
     @Test
@@ -191,8 +191,8 @@ class OllamaChatProviderTest {
                 sut.stream(input, onDelta = { }, onUsage = null)
             }
 
-        Assertions.assertThat(result.status).isEqualTo(500)
-        Assertions.assertThat(result.responseBody).contains("oops")
+        assertThat(result.status).isEqualTo(500)
+        assertThat(result.responseBody).contains("oops")
     }
 
     private fun buildInput(
@@ -213,10 +213,10 @@ class OllamaChatProviderTest {
         sent: OllamaChatRequest,
         expectedParams: InferenceParams,
     ) {
-        Assertions.assertThat(sent.model).isEqualTo(MODEL)
-        Assertions.assertThat(sent.messages).containsExactly(OllamaChatMessageRequest("user", "Hi"))
-        Assertions.assertThat(sent.options?.temperature).isEqualTo(expectedParams.temperature)
-        Assertions.assertThat(sent.options?.topP).isEqualTo(expectedParams.topP)
-        Assertions.assertThat(sent.options?.numPredict).isEqualTo(expectedParams.maxTokens)
+        assertThat(sent.model).isEqualTo(MODEL)
+        assertThat(sent.messages).containsExactly(OllamaChatMessageRequest("user", "Hi"))
+        assertThat(sent.options?.temperature).isEqualTo(expectedParams.temperature)
+        assertThat(sent.options?.topP).isEqualTo(expectedParams.topP)
+        assertThat(sent.options?.numPredict).isEqualTo(expectedParams.maxTokens)
     }
 }
