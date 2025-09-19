@@ -9,6 +9,7 @@ import dev.pedro.rag.infra.llm.metrics.LlmMetrics
 import dev.pedro.rag.infra.llm.metrics.MetricsLlmChatPort
 import dev.pedro.rag.infra.llm.ollama.chat.client.OllamaChatHttpClient
 import dev.pedro.rag.infra.llm.ollama.chat.provider.OllamaChatProvider
+import dev.pedro.rag.infra.llm.ollama.embedding.client.OllamaEmbeddingHttpClient
 import dev.pedro.rag.infra.llm.ollama.support.NdjsonStreamProcessor
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Qualifier
@@ -86,4 +87,15 @@ class LlmConfig {
         useCase: ChatUseCase,
         mapper: ObjectMapper,
     ) = ChatSseBridge(useCase = useCase, mapper = mapper)
+
+    @Bean
+    fun ollamaEmbeddingHttpClient(
+        http: HttpClient,
+        mapper: ObjectMapper,
+        props: LlmProperties,
+    ) = OllamaEmbeddingHttpClient(
+        http = http,
+        mapper = mapper,
+        properties = props.ollama,
+    )
 }
