@@ -14,9 +14,9 @@ llm:
 
 retrieval:
   embedding:
-    provider: fake
-    model: fake-v1
-    dimension: 16
+    provider: ollama
+    model: ${OLLAMA_EMBED_MODEL:mxbai-embed-large}
+    dimension: 1024
     normalized: true
 
 management:
