@@ -2,44 +2,99 @@ package dev.pedro.rag.infra.llm.ollama.embedding.client
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import dev.pedro.rag.config.llm.LlmProperties
-import dev.pedro.rag.infra.llm.ollama.embedding.request.OllamaEmbeddingRequest
 import dev.pedro.rag.infra.llm.ollama.embedding.response.OllamaEmbeddingResponse
 import dev.pedro.rag.infra.llm.ollama.errors.OllamaInvalidResponseException
 import dev.pedro.rag.infra.llm.ollama.support.OllamaHttpSupport
 import java.net.URI
 import java.net.http.HttpClient
+import java.util.concurrent.StructuredTaskScope
 
 class OllamaEmbeddingHttpClient(
     private val http: HttpClient,
     private val mapper: ObjectMapper,
     private val properties: LlmProperties.Ollama,
 ) {
-    private val endpoint: URI =
-        OllamaHttpSupport.endpoint(properties.baseUrl, "/api/embeddings")
+    companion object {
+        private const val MAX_PARALLEL_EMBEDS = 16
+    }
+
+    private val embedEndpoint: URI =
+        OllamaHttpSupport.endpoint(properties.baseUrl, "/api/embed")
 
     fun embed(
         model: String,
         inputs: List<String>,
     ): List<FloatArray> {
-        validateInputs(inputs)
-        val jsonBody = serializeRequest(model, inputs)
-        val request = OllamaHttpSupport.buildJsonPost(endpoint, properties.requestTimeout, jsonBody)
-        val httpResponse = OllamaHttpSupport.sendForStringAndEnsureSuccess(http, request)
-        val response = parseResponse(httpResponse.body())
-        val batchVectors = toBatchVectors(response)
-        validateBatchSize(batchVectors, expected = inputs.size)
-        return batchVectors.map(::toFloatArray32)
+        requireValidInputs(inputs)
+        return if (inputs.size == 1) {
+            listOf(embedOne(model, inputs[0]))
+        } else {
+            embedManyPreservingOrder(model, inputs)
+        }
     }
 
-    private fun validateInputs(inputs: List<String>) {
+    private fun embedOne(
+        model: String,
+        input: String,
+    ): FloatArray {
+        val response = postSingleAndParse(model, input)
+        val vector = extractVectorOrThrow(response)
+        val out = toFloatArray32(vector)
+        ensureNonEmpty(out)
+        return out
+    }
+
+    private fun postSingleAndParse(
+        model: String,
+        input: String,
+    ): OllamaEmbeddingResponse {
+        val jsonBody = serializeSingleRequest(model, input)
+        val request = OllamaHttpSupport.buildJsonPost(embedEndpoint, properties.requestTimeout, jsonBody)
+        val response = OllamaHttpSupport.sendForStringAndEnsureSuccess(http, request)
+        return parseResponse(response.body())
+    }
+
+    private fun serializeSingleRequest(
+        model: String,
+        input: String,
+    ): String = mapper.writeValueAsString(mapOf("model" to model, "input" to input))
+
+    private fun extractVectorOrThrow(res: OllamaEmbeddingResponse): List<Double> =
+        when {
+            !res.error.isNullOrBlank() -> throw OllamaInvalidResponseException("Ollama error: ${res.error}")
+            res.embedding != null -> res.embedding
+            res.embeddings?.isNotEmpty() == true -> res.embeddings.first()
+            else -> throw OllamaInvalidResponseException("Ollama embedding response is missing 'embedding' or 'embeddings'")
+        }
+
+    private fun embedManyPreservingOrder(
+        model: String,
+        inputs: List<String>,
+    ): List<FloatArray> {
+        val slots: Array<FloatArray?> = arrayOfNulls(inputs.size)
+        inputs.withIndex().chunked(MAX_PARALLEL_EMBEDS).forEach { window ->
+            StructuredTaskScope.ShutdownOnFailure().use { scope ->
+                window.forEach { (idx, text) ->
+                    scope.fork {
+                        slots[idx] = embedOne(model, text)
+                    }
+                }
+                scope.join()
+                scope.throwIfFailed()
+            }
+        }
+        return toOrderedVectorsOrThrow(slots)
+    }
+
+    private fun toOrderedVectorsOrThrow(slots: Array<FloatArray?>): List<FloatArray> =
+        slots.mapIndexed { i, vec ->
+            vec ?: throw OllamaInvalidResponseException("Missing embedding result at index=$i")
+        }
+
+    private fun requireValidInputs(inputs: List<String>) {
         require(inputs.isNotEmpty()) { "inputs must not be empty" }
         require(inputs.all { it.isNotBlank() }) { "inputs must not contain blank strings" }
     }
-
-    private fun serializeRequest(
-        model: String,
-        inputs: List<String>,
-    ): String = mapper.writeValueAsString(OllamaEmbeddingRequest(model = model, input = inputs))
 
     private fun parseResponse(body: String): OllamaEmbeddingResponse =
         try {
@@ -48,29 +103,15 @@ class OllamaEmbeddingHttpClient(
             throw OllamaInvalidResponseException("Invalid JSON from Ollama embeddings endpoint")
         }
 
-    private fun toBatchVectors(res: OllamaEmbeddingResponse): List<List<Double>> =
-        when {
-            res.embeddings != null -> res.embeddings
-            res.embedding != null -> listOf(res.embedding)
-            else -> throw OllamaInvalidResponseException(
-                "Ollama embedding response is missing 'embeddings' or 'embedding'",
-            )
-        }
-
-    private fun validateBatchSize(
-        vectors: List<List<Double>>,
-        expected: Int,
-    ) {
-        if (vectors.size != expected) {
-            throw OllamaInvalidResponseException(
-                "Ollama embedding response size mismatch: expected $expected, got ${vectors.size}",
-            )
-        }
-    }
-
     private fun toFloatArray32(src: List<Double>): FloatArray {
         val out = FloatArray(src.size)
         for (i in src.indices) out[i] = src[i].toFloat()
         return out
+    }
+
+    private fun ensureNonEmpty(vec: FloatArray) {
+        if (vec.isEmpty()) {
+            throw OllamaInvalidResponseException("Ollama returned empty embedding vector")
+        }
     }
 }
