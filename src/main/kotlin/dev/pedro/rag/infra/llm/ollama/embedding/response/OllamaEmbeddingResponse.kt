@@ -6,5 +6,6 @@ import com.fasterxml.jackson.annotation.JsonInclude
 data class OllamaEmbeddingResponse(
     val embedding: List<Double>? = null,
     val embeddings: List<List<Double>>? = null,
+    val error: String? = null,
     val model: String? = null,
 )
