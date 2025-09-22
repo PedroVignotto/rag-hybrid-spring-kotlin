@@ -7,6 +7,8 @@ class SimpleChunker : Chunker {
     companion object {
         const val META_CHUNK_INDEX = "chunk_index"
         const val META_CHUNK_TOTAL = "chunk_total"
+        const val META_CHUNK_START = "chunk_start"
+        const val META_CHUNK_END = "chunk_end"
         private const val MIN_CHUNK_SIZE = 1
         private const val MIN_OVERLAP = 0
     }
@@ -25,7 +27,12 @@ class SimpleChunker : Chunker {
             val chunkText = text.substring(startIndex, endExclusive)
             TextChunk(
                 text = chunkText,
-                metadata = buildMetadata(chunkIndex, startPositions.size),
+                metadata = buildMetadata(
+                    chunkIndex = chunkIndex,
+                    chunkTotal = startPositions.size,
+                    start = startIndex,
+                    endExclusive = endExclusive,
+                ),
             )
         }
     }
@@ -53,9 +60,12 @@ class SimpleChunker : Chunker {
     private fun buildMetadata(
         chunkIndex: Int,
         chunkTotal: Int,
-    ): Map<String, String> =
-        mapOf(
-            META_CHUNK_INDEX to chunkIndex.toString(),
-            META_CHUNK_TOTAL to chunkTotal.toString(),
-        )
+        start: Int,
+        endExclusive: Int,
+    ): Map<String, String> = mapOf(
+        META_CHUNK_INDEX to chunkIndex.toString(),
+        META_CHUNK_TOTAL to chunkTotal.toString(),
+        META_CHUNK_START to start.toString(),
+        META_CHUNK_END to endExclusive.toString(),
+    )
 }
