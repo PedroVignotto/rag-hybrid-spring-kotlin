@@ -18,6 +18,7 @@ class SimpleChunkerTest {
     @Test
     fun `should split text respecting chunk size and overlap in typical case`() {
         val text = "ABCDE"
+
         val chunks: List<TextChunk> = sut.split(text, chunkSize = 3, overlap = 1)
 
         val chunkTexts = chunks.map { it.text }
@@ -25,14 +26,25 @@ class SimpleChunkerTest {
     }
 
     @Test
-    fun `should include metadata chunk_index and chunk_total on each chunk`() {
+    fun `should include metadata on each chunk`() {
         val text = "ABCDE"
+
         val chunks = sut.split(text, chunkSize = 3, overlap = 1)
 
         val total = chunks.size
+        var lastStart = -1
         chunks.forEachIndexed { index, c ->
-            assertEquals(index.toString(), c.metadata[SimpleChunker.META_CHUNK_INDEX])
-            assertEquals(total.toString(), c.metadata[SimpleChunker.META_CHUNK_TOTAL])
+            val meta = c.metadata
+            assertEquals(index.toString(), meta[SimpleChunker.META_CHUNK_INDEX])
+            assertEquals(total.toString(), meta[SimpleChunker.META_CHUNK_TOTAL])
+            val start = meta[SimpleChunker.META_CHUNK_START]!!.toInt()
+            val endExclusive = meta[SimpleChunker.META_CHUNK_END]!!.toInt()
+            assertTrue(start >= 0)
+            assertTrue(endExclusive > start)
+            assertTrue(endExclusive <= text.length)
+            assertEquals(endExclusive - start, c.text.length)
+            assertTrue(start > lastStart)
+            lastStart = start
         }
     }
 
@@ -47,19 +59,13 @@ class SimpleChunkerTest {
 
     @Test
     fun `should throw when overlap is negative`() {
-        val exception =
-            assertThrows<IllegalStateException> {
-                sut.split(text = "abc", chunkSize = 3, overlap = -1)
-            }
+        val exception = assertThrows<IllegalStateException> { sut.split(text = "abc", chunkSize = 3, overlap = -1) }
         assertTrue(exception.message!!.contains("overlap"))
     }
 
     @Test
     fun `should throw when overlap is not less than chunkSize`() {
-        val exception =
-            assertThrows<IllegalStateException> {
-                sut.split(text = "abcdef", chunkSize = 3, overlap = 3)
-            }
+        val exception = assertThrows<IllegalStateException> { sut.split(text = "abcdef", chunkSize = 3, overlap = 3) }
         assertTrue(exception.message!!.contains("overlap"))
     }
 
