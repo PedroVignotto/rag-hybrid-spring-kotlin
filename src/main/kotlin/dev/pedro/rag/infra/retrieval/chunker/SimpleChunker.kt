@@ -27,12 +27,13 @@ class SimpleChunker : Chunker {
             val chunkText = text.substring(startIndex, endExclusive)
             TextChunk(
                 text = chunkText,
-                metadata = buildMetadata(
-                    chunkIndex = chunkIndex,
-                    chunkTotal = startPositions.size,
-                    start = startIndex,
-                    endExclusive = endExclusive,
-                ),
+                metadata =
+                    buildMetadata(
+                        chunkIndex = chunkIndex,
+                        chunkTotal = startPositions.size,
+                        start = startIndex,
+                        endExclusive = endExclusive,
+                    ),
             )
         }
     }
@@ -62,10 +63,11 @@ class SimpleChunker : Chunker {
         chunkTotal: Int,
         start: Int,
         endExclusive: Int,
-    ): Map<String, String> = mapOf(
-        META_CHUNK_INDEX to chunkIndex.toString(),
-        META_CHUNK_TOTAL to chunkTotal.toString(),
-        META_CHUNK_START to start.toString(),
-        META_CHUNK_END to endExclusive.toString(),
-    )
+    ): Map<String, String> =
+        mapOf(
+            META_CHUNK_INDEX to chunkIndex.toString(),
+            META_CHUNK_TOTAL to chunkTotal.toString(),
+            META_CHUNK_START to start.toString(),
+            META_CHUNK_END to endExclusive.toString(),
+        )
 }
