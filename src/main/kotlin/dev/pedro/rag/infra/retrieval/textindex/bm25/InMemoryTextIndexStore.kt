@@ -69,11 +69,19 @@ class InMemoryTextIndexStore(
     override fun search(
         query: String,
         width: Int,
+        filter: Map<String, String>?,
     ): List<SearchMatch> {
         if (query.isBlank() || width <= 0 || docLengths.isEmpty()) return emptyList()
         val terms = tokenize(query).distinct()
         if (terms.isEmpty()) return emptyList()
-
+        val allowedKeys: Set<DocumentKey>? =
+            filter?.takeIf { it.isNotEmpty() }?.let { f ->
+                docChunks
+                    .filter { (_, chunk) -> f.all { (k, v) -> chunk.metadata[k] == v } }
+                    .keys
+                    .toSet()
+                    .also { if (it.isEmpty()) return emptyList() }
+            }
         val nDocs = docLengths.size.toDouble()
         val avgDl = docLengths.values.average().takeIf { !it.isNaN() } ?: 0.0
         val scores = mutableMapOf<DocumentKey, Double>()
@@ -81,16 +89,14 @@ class InMemoryTextIndexStore(
             val posting = postings[term] ?: return@forEach
             val df = posting.size.toDouble()
             val idf = bm25Idf(nDocs, df)
-
             posting.forEach { (key, tf) ->
+                if (allowedKeys != null && key !in allowedKeys) return@forEach
                 val dl = docLengths[key] ?: return@forEach
                 val s = idf * bm25Tf(tf, dl, avgDl)
                 scores[key] = (scores[key] ?: 0.0) + s
             }
         }
-
         if (scores.isEmpty()) return emptyList()
-
         return scores.entries
             .sortedWith(
                 compareByDescending<Map.Entry<DocumentKey, Double>> { it.value }
