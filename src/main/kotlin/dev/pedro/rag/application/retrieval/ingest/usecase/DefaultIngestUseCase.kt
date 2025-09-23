@@ -4,6 +4,7 @@ import dev.pedro.rag.application.retrieval.ingest.dto.IngestInput
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestOutput
 import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
+import dev.pedro.rag.application.retrieval.ports.TextIndexPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.domain.retrieval.CollectionSpec.Companion.fromSpec
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
@@ -14,6 +15,7 @@ class DefaultIngestUseCase(
     private val chunker: Chunker,
     private val embedPort: EmbedPort,
     private val vectorStorePort: VectorStorePort,
+    private val textIndexPort: TextIndexPort,
 ) : IngestUseCase {
     override fun ingest(input: IngestInput): IngestOutput {
         validateInput(input)
@@ -23,15 +25,16 @@ class DefaultIngestUseCase(
         if (rawChunks.isEmpty()) {
             return IngestOutput(documentId = input.documentId, chunksIngested = 0)
         }
-        val chunksWithMetadata = mergeBaseAndChunkMetadata(input.baseMetadata, rawChunks)
-        val embeddings: List<EmbeddingVector> = embedPort.embedAll(chunksWithMetadata.map { it.text })
+        val chunks = mergeBaseAndChunkMetadata(input.baseMetadata, rawChunks)
+        val embeddings: List<EmbeddingVector> = embedPort.embedAll(chunks.map { it.text })
         validateEmbeddingDimensions(embeddings, embeddingSpec)
         vectorStorePort.upsert(
             collection = collectionSpec,
             documentId = input.documentId,
-            items = chunksWithMetadata.zip(embeddings),
+            items = chunks.zip(embeddings),
         )
-        return IngestOutput(documentId = input.documentId, chunksIngested = chunksWithMetadata.size)
+        textIndexPort.index(input.documentId, chunks)
+        return IngestOutput(documentId = input.documentId, chunksIngested = chunks.size)
     }
 
     private fun validateInput(input: IngestInput) {
