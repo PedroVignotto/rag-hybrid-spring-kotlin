@@ -158,6 +158,22 @@ class InMemoryTextIndexStoreTest {
         assertEquals(1, sizeAfterDelete)
     }
 
+    @Test
+    fun `should honor metadata filter before scoring`() {
+        val doc = DocumentId("doc-filter")
+        val c0 = TextChunk("design ux",       metadata = mapOf("chunk_index" to "0", "lang" to "en"))
+        val c1 = TextChunk("design produto",  metadata = mapOf("chunk_index" to "1", "lang" to "pt"))
+        sut.index(doc, listOf(c0, c1))
+
+        val enOnly = sut.search("design", width = 10, filter = mapOf("lang" to "en"))
+        val ptOnly = sut.search("design", width = 10, filter = mapOf("lang" to "pt"))
+        val none   = sut.search("design", width = 10, filter = mapOf("lang" to "es"))
+
+        assertEquals(listOf("0"), enOnly.map { it.chunk.metadata["chunk_index"] })
+        assertEquals(listOf("1"), ptOnly.map { it.chunk.metadata["chunk_index"] })
+        assertTrue(none.isEmpty())
+    }
+
     private fun chunk(
         text: String,
         index: Int,
