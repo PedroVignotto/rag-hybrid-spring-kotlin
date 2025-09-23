@@ -18,6 +18,55 @@ retrieval:
     model: ${OLLAMA_EMBED_MODEL:mxbai-embed-large}
     dimension: 1024
     normalized: true
+  search:
+    k: 10
+    vector:
+      enabled: true
+      width: 100
+    bm25:
+      enabled: true
+      width: 100
+      term-frequency-saturation: 1.2
+      length-normalization: 0.75
+      stop-words-enabled: true
+      stop-words:
+        # EN
+        - "the"
+        - "and"
+        - "of"
+        - "to"
+        - "in"
+        - "on"
+        - "a"
+        - "an"
+        - "is"
+        - "are"
+        # PT-BR
+        - "de"
+        - "da"
+        - "do"
+        - "das"
+        - "dos"
+        - "e"
+        - "para"
+        - "por"
+        - "em"
+        - "no"
+        - "na"
+        - "nos"
+        - "nas"
+        - "um"
+        - "uma"
+    fusion:
+      alpha: 0.5
+    dedup:
+      strict-enabled: true
+      soft:
+        enabled: true
+        overlap-threshold: 0.75
+    mmr:
+      enabled: true
+      lambda: 0.3
 
 management:
   endpoints:
