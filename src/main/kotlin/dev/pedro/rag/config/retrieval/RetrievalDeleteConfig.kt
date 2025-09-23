@@ -24,7 +24,7 @@ class RetrievalDeleteConfig {
         DefaultDeleteUseCase(
             vectorStore = vectorStorePort,
             activeCollection = collectionSpec,
-            textIndexPort = textIndexPort
+            textIndexPort = textIndexPort,
         )
 
     @Bean

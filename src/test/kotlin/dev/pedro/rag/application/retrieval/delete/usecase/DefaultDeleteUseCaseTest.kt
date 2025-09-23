@@ -20,7 +20,6 @@ class DefaultDeleteUseCaseTest(
     @param:MockK private val collectionSpec: CollectionSpec,
     @param:MockK(relaxed = true) private val textIndexPort: TextIndexPort,
 ) {
-
     @InjectMockKs
     private lateinit var sut: DefaultDeleteUseCase
 
