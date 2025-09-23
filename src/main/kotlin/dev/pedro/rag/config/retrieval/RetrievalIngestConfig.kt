@@ -4,6 +4,7 @@ import dev.pedro.rag.application.retrieval.ingest.usecase.DefaultIngestUseCase
 import dev.pedro.rag.application.retrieval.ingest.usecase.IngestUseCase
 import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
+import dev.pedro.rag.application.retrieval.ports.TextIndexPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.infra.retrieval.metrics.MetricsIngestUseCase
 import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics
@@ -19,11 +20,13 @@ class RetrievalIngestConfig {
         chunker: Chunker,
         embedPort: EmbedPort,
         vectorStorePort: VectorStorePort,
+        textIndexPort: TextIndexPort,
     ): IngestUseCase =
         DefaultIngestUseCase(
             chunker = chunker,
             embedPort = embedPort,
             vectorStorePort = vectorStorePort,
+            textIndexPort = textIndexPort,
         )
 
     @Bean
