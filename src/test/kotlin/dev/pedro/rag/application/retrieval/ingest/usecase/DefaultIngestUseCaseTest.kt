@@ -3,13 +3,13 @@ package dev.pedro.rag.application.retrieval.ingest.usecase
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestInput
 import dev.pedro.rag.application.retrieval.ports.Chunker
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
+import dev.pedro.rag.application.retrieval.ports.TextIndexPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
 import dev.pedro.rag.domain.retrieval.EmbeddingVector
 import dev.pedro.rag.domain.retrieval.TextChunk
-import io.mockk.CapturingSlot
 import io.mockk.Runs
 import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
@@ -35,6 +35,7 @@ class DefaultIngestUseCaseTest(
     @param:MockK private val chunker: Chunker,
     @param:MockK private val embedPort: EmbedPort,
     @param:MockK private val vectorStorePort: VectorStorePort,
+    @param:MockK(relaxed = true) private val textIndexPort: TextIndexPort,
 ) {
     @InjectMockKs
     private lateinit var sut: DefaultIngestUseCase
@@ -57,16 +58,20 @@ class DefaultIngestUseCaseTest(
                 )
             return listOf(
                 named("blank text") {
-                    DefaultIngestUseCase(mockk(), mockk(), mockk()).ingest(base.copy(text = "   "))
+                    DefaultIngestUseCase(mockk(), mockk(), mockk(), mockk(relaxed = true))
+                        .ingest(base.copy(text = "   "))
                 },
                 named("chunkSize <= 0") {
-                    DefaultIngestUseCase(mockk(), mockk(), mockk()).ingest(base.copy(chunkSize = 0))
+                    DefaultIngestUseCase(mockk(), mockk(), mockk(), mockk(relaxed = true))
+                        .ingest(base.copy(chunkSize = 0))
                 },
                 named("overlap < 0") {
-                    DefaultIngestUseCase(mockk(), mockk(), mockk()).ingest(base.copy(overlap = -1))
+                    DefaultIngestUseCase(mockk(), mockk(), mockk(), mockk(relaxed = true))
+                        .ingest(base.copy(overlap = -1))
                 },
                 named("overlap >= chunkSize") {
-                    DefaultIngestUseCase(mockk(), mockk(), mockk()).ingest(base.copy(chunkSize = 5, overlap = 5))
+                    DefaultIngestUseCase(mockk(), mockk(), mockk(), mockk(relaxed = true))
+                        .ingest(base.copy(chunkSize = 5, overlap = 5))
                 },
             )
         }
@@ -79,7 +84,7 @@ class DefaultIngestUseCaseTest(
     }
 
     @Test
-    fun `should chunk, embed and upsert with chunk metadata precedence`() {
+    fun `should chunk, embed, upsert and index bm25 with chunk metadata precedence`() {
         val input =
             input(
                 documentId = "doc-1",
@@ -101,10 +106,14 @@ class DefaultIngestUseCaseTest(
                 EmbeddingVector(values = floatArrayOf(1f, 0f, 0f), dim = defaultSpec.dim, normalized = true)
             }
         }
-        val collectionSlot: CapturingSlot<CollectionSpec> = slot()
-        val documentIdSlot: CapturingSlot<DocumentId> = slot()
-        val itemsSlot: CapturingSlot<List<Pair<TextChunk, EmbeddingVector>>> = slot()
-        every { vectorStorePort.upsert(capture(collectionSlot), capture(documentIdSlot), capture(itemsSlot)) } just Runs
+        val collectionSlot = slot<CollectionSpec>()
+        val documentIdSlot = slot<DocumentId>()
+        val itemsSlot = slot<List<Pair<TextChunk, EmbeddingVector>>>()
+        every {
+            vectorStorePort.upsert(capture(collectionSlot), capture(documentIdSlot), capture(itemsSlot))
+        } just Runs
+        val indexDocSlot = slot<DocumentId>()
+        val indexChunksSlot = slot<List<TextChunk>>()
 
         val result = sut.ingest(input)
 
@@ -120,10 +129,14 @@ class DefaultIngestUseCaseTest(
         verify(exactly = 1) { chunker.split(input.text, input.chunkSize, input.overlap) }
         verify(exactly = 1) { embedPort.embedAll(listOf("ABCDE", "DEFGH", "GHIJ", "J")) }
         verify(exactly = 1) { vectorStorePort.upsert(any(), any(), any()) }
+        verify(exactly = 1) { textIndexPort.index(capture(indexDocSlot), capture(indexChunksSlot)) }
+        assertEquals(DocumentId("doc-1"), indexDocSlot.captured)
+        assertEquals(listOf("ABCDE", "DEFGH", "GHIJ", "J"), indexChunksSlot.captured.map { it.text })
+        assertTrue(indexChunksSlot.captured.all { it.metadata["location"] == "hq" })
     }
 
     @Test
-    fun `should return zero when chunker yields no chunks and must not call embed or upsert`() {
+    fun `should return zero when chunker yields no chunks and must not call embed upsert or index`() {
         val input = input(text = "abc", chunkSize = 10, overlap = 0)
         every { chunker.split(input.text, input.chunkSize, input.overlap) } returns emptyList()
 
@@ -134,6 +147,7 @@ class DefaultIngestUseCaseTest(
         verify(exactly = 1) { embedPort.spec() }
         verify(exactly = 0) { embedPort.embedAll(any()) }
         verify(exactly = 0) { vectorStorePort.upsert(any(), any(), any()) }
+        verify(exactly = 0) { textIndexPort.index(any(), any()) }
     }
 
     @Test
@@ -147,6 +161,7 @@ class DefaultIngestUseCaseTest(
 
         assertThrows(IllegalArgumentException::class.java) { sut.ingest(input) }
         verify(exactly = 0) { vectorStorePort.upsert(any(), any(), any()) }
+        verify(exactly = 0) { textIndexPort.index(any(), any()) }
     }
 
     @ParameterizedTest(name = "{index} => {0}")
