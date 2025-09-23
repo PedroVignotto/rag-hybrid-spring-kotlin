@@ -41,7 +41,13 @@ data class RetrievalSearchProperties(
         @field:Min(1)
         @field:Max(500)
         val width: Int = 100,
+        @field:DecimalMin("0.0")
+        val termFrequencySaturation: Double = 1.2,
+        @field:DecimalMin("0.0")
+        @field:DecimalMax("1.0")
+        val lengthNormalization: Double = 0.75,
         val stopWordsEnabled: Boolean = false,
+        val stopWords: Set<String> = emptySet(),
     )
 
     data class Fusion(
