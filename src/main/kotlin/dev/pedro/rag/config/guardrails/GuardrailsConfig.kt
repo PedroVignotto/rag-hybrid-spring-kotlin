@@ -7,7 +7,6 @@ import dev.pedro.rag.api.web.ratelimit.resolver.ClientKeyResolver
 import dev.pedro.rag.api.web.ratelimit.resolver.EndpointRuleResolver
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.web.servlet.HandlerInterceptor
@@ -15,7 +14,6 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
 @Configuration
-@EnableConfigurationProperties(RateLimitProperties::class)
 class GuardrailsConfig(
     @param:Qualifier("rateLimitInterceptor")
     private val interceptorProvider: ObjectProvider<HandlerInterceptor>,

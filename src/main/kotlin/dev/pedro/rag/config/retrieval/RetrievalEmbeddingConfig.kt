@@ -10,13 +10,11 @@ import dev.pedro.rag.infra.retrieval.embedding.ollama.OllamaEmbeddingProvider
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 
 @Configuration
-@EnableConfigurationProperties(RetrievalProperties::class)
 class RetrievalEmbeddingConfig(private val props: RetrievalProperties) {
     @Bean
     fun embeddingSpec(): EmbeddingSpec =

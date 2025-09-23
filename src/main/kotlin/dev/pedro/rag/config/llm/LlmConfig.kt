@@ -13,14 +13,12 @@ import dev.pedro.rag.infra.llm.ollama.embedding.client.OllamaEmbeddingHttpClient
 import dev.pedro.rag.infra.llm.ollama.support.NdjsonStreamProcessor
 import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.beans.factory.annotation.Qualifier
-import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
 import java.net.http.HttpClient
 
 @Configuration
-@EnableConfigurationProperties(LlmProperties::class)
 class LlmConfig {
     @Bean
     fun httpClient(props: LlmProperties): HttpClient =
