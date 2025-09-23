@@ -3,6 +3,7 @@ package dev.pedro.rag.config.retrieval
 import dev.pedro.rag.application.retrieval.delete.usecase.DefaultDeleteUseCase
 import dev.pedro.rag.application.retrieval.delete.usecase.DeleteUseCase
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
+import dev.pedro.rag.application.retrieval.ports.TextIndexPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.infra.retrieval.metrics.MetricsDeleteUseCase
@@ -18,10 +19,12 @@ class RetrievalDeleteConfig {
     fun deleteUseCaseCore(
         vectorStorePort: VectorStorePort,
         collectionSpec: CollectionSpec,
+        textIndexPort: TextIndexPort,
     ): DeleteUseCase =
         DefaultDeleteUseCase(
             vectorStore = vectorStorePort,
             activeCollection = collectionSpec,
+            textIndexPort = textIndexPort
         )
 
     @Bean
