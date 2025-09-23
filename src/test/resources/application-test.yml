@@ -24,6 +24,28 @@ retrieval:
     model: fake-v1
     dimension: 16
     normalized: true
+  search:
+    k: 10
+    vector:
+      enabled: true
+      width: 10
+    bm25:
+      enabled: true
+      width: 10
+      term-frequency-saturation: 1.2
+      length-normalization: 0.75
+      stop-words-enabled: false
+      stop-words: [ ]
+    fusion:
+      alpha: 0.5
+    dedup:
+      strict-enabled: true
+      soft:
+        enabled: true
+        overlap-threshold: 0.75
+    mmr:
+      enabled: false
+      lambda: 0.3
 
 guardrails:
   rate-limit:
