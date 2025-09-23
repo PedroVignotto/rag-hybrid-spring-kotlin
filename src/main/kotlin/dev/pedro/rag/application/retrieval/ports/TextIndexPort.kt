@@ -15,6 +15,7 @@ interface TextIndexPort {
     fun search(
         query: String,
         width: Int,
+        filter: Map<String, String>? = null,
     ): List<SearchMatch>
 
     fun size(): Int
