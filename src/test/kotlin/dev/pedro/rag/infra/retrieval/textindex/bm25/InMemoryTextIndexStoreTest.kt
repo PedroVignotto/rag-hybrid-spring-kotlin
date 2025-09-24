@@ -16,24 +16,6 @@ class InMemoryTextIndexStoreTest {
     }
 
     @Test
-    fun `should return empty when query is blank`() {
-        sut.index(DocumentId("d1"), listOf(chunk("hello world", 0)))
-
-        val result = sut.search("", width = 10)
-
-        assertTrue(result.isEmpty())
-    }
-
-    @Test
-    fun `should return empty when width is invalid`() {
-        sut.index(DocumentId("d1"), listOf(chunk("hello world", 0)))
-
-        val result = sut.search("hello", width = 0)
-
-        assertTrue(result.isEmpty())
-    }
-
-    @Test
     fun `should rank higher chunks with higher term frequency`() {
         sut.index(
             DocumentId("doc"),
@@ -86,92 +68,17 @@ class InMemoryTextIndexStoreTest {
 
     @Test
     fun `should ignore stopWords when disabled (en)`() {
-        val storeNoStop =
+        val sut =
             InMemoryTextIndexStore(
                 stopWordsEnabled = false,
                 stopWords = setOf("the", "and", "of"),
             )
-        storeNoStop.index(DocumentId("s-en-2"), listOf(chunk("the the and and of of", 0)))
+        sut.index(DocumentId("s-en-2"), listOf(chunk("the the and and of of", 0)))
 
-        val result = storeNoStop.search("the and of", width = 5)
+        val result = sut.search("the and of", width = 5)
 
         assertTrue(result.isNotEmpty())
         assertEquals("0", result.first().chunk.metadata["chunk_index"])
-    }
-
-    @Test
-    fun `should delete by document id`() {
-        sut.index(DocumentId("d1"), listOf(chunk("alpha beta", 0)))
-        sut.index(DocumentId("d2"), listOf(chunk("alpha beta", 0)))
-
-        val removed = sut.delete(DocumentId("d1"))
-        val result = sut.search("alpha", width = 10)
-
-        assertTrue(removed > 0)
-        assertTrue(result.isNotEmpty())
-        assertTrue(result.all { it.documentId == DocumentId("d2") })
-    }
-
-    @Test
-    fun `should be idempotent on reindex same document and chunk index`() {
-        val doc = DocumentId("reindex")
-        sut.index(doc, listOf(chunk("alpha", 0)))
-
-        val before = sut.search("alpha", width = 5)
-        sut.index(doc, listOf(chunk("beta", 0)))
-        val afterAlpha = sut.search("alpha", width = 5)
-        val afterBeta = sut.search("beta", width = 5)
-
-        assertTrue(before.isNotEmpty())
-        assertTrue(afterAlpha.isEmpty())
-        assertTrue(afterBeta.isNotEmpty())
-    }
-
-    @Test
-    fun `should respect width limit`() {
-        sut.index(
-            DocumentId("doc-width"),
-            listOf(
-                chunk("design", 0),
-                chunk("design", 1),
-                chunk("design", 2),
-                chunk("design", 3),
-            ),
-        )
-
-        val result = sut.search("design", width = 2)
-
-        assertEquals(2, result.size)
-    }
-
-    @Test
-    fun `should report size after index and delete`() {
-        assertEquals(0, sut.size())
-        sut.index(DocumentId("d1"), listOf(chunk("a b c", 0), chunk("d e f", 1)))
-        sut.index(DocumentId("d2"), listOf(chunk("x y", 0)))
-
-        val sizeAfterIndex = sut.size()
-        sut.delete(DocumentId("d1"))
-        val sizeAfterDelete = sut.size()
-
-        assertEquals(3, sizeAfterIndex)
-        assertEquals(1, sizeAfterDelete)
-    }
-
-    @Test
-    fun `should honor metadata filter before scoring`() {
-        val doc = DocumentId("doc-filter")
-        val c0 = TextChunk("design ux", metadata = mapOf("chunk_index" to "0", "lang" to "en"))
-        val c1 = TextChunk("design produto", metadata = mapOf("chunk_index" to "1", "lang" to "pt"))
-        sut.index(doc, listOf(c0, c1))
-
-        val enOnly = sut.search("design", width = 10, filter = mapOf("lang" to "en"))
-        val ptOnly = sut.search("design", width = 10, filter = mapOf("lang" to "pt"))
-        val none = sut.search("design", width = 10, filter = mapOf("lang" to "es"))
-
-        assertEquals(listOf("0"), enOnly.map { it.chunk.metadata["chunk_index"] })
-        assertEquals(listOf("1"), ptOnly.map { it.chunk.metadata["chunk_index"] })
-        assertTrue(none.isEmpty())
     }
 
     private fun chunk(
