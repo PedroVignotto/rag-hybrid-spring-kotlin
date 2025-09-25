@@ -1,17 +1,19 @@
 package dev.pedro.rag.application.retrieval.search.usecase
 
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
+import dev.pedro.rag.application.retrieval.ports.TextIndexPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.application.retrieval.search.dto.SearchInput
+import dev.pedro.rag.application.retrieval.search.ranking.HybridSearchAggregator
+import dev.pedro.rag.config.retrieval.RetrievalSearchProperties
 import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.domain.retrieval.DocumentId
 import dev.pedro.rag.domain.retrieval.EmbeddingSpec
 import dev.pedro.rag.domain.retrieval.EmbeddingVector
 import dev.pedro.rag.domain.retrieval.SearchMatch
 import dev.pedro.rag.domain.retrieval.TextChunk
-import io.mockk.CapturingSlot
+import io.mockk.confirmVerified
 import io.mockk.every
-import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
@@ -28,11 +30,16 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
 
 @ExtendWith(MockKExtension::class)
-class DefaultSearchUseCaseTest(
-    @param:MockK private val embedPort: EmbedPort,
-    @param:MockK private val vectorStorePort: VectorStorePort,
-) {
-    @InjectMockKs
+class DefaultSearchUseCaseTest {
+    @MockK lateinit var embedPort: EmbedPort
+
+    @MockK lateinit var vectorStorePort: VectorStorePort
+
+    @MockK lateinit var textIndexPort: TextIndexPort
+
+    @MockK lateinit var aggregator: HybridSearchAggregator
+
+    private lateinit var props: RetrievalSearchProperties
     private lateinit var sut: DefaultSearchUseCase
     private lateinit var defaultSpec: EmbeddingSpec
 
@@ -43,81 +50,122 @@ class DefaultSearchUseCaseTest(
                 name: String,
                 block: () -> Unit,
             ) = Named.of(name, Executable { block() })
-
+            val props = RetrievalSearchProperties()
             return listOf(
                 named("blank query") {
-                    DefaultSearchUseCase(
-                        embedPort = mockk(),
-                        vectorStorePort = mockk(),
-                    ).search(SearchInput(queryText = "   ", topK = 3, filter = null))
+                    val useCase =
+                        DefaultSearchUseCase(
+                            embedPort = mockk(),
+                            vectorStorePort = mockk(),
+                            textIndexPort = mockk(),
+                            props = props,
+                            aggregator = mockk(),
+                        )
+                    useCase.search(SearchInput(queryText = "   ", topK = 3, filter = null))
                 },
                 named("topK <= 0") {
-                    DefaultSearchUseCase(
-                        embedPort = mockk(),
-                        vectorStorePort = mockk(),
-                    ).search(SearchInput(queryText = "ok", topK = 0, filter = null))
+                    val useCase =
+                        DefaultSearchUseCase(
+                            embedPort = mockk(),
+                            vectorStorePort = mockk(),
+                            textIndexPort = mockk(),
+                            props = props,
+                            aggregator = mockk(),
+                        )
+                    useCase.search(SearchInput(queryText = "ok", topK = 0, filter = null))
                 },
             )
         }
     }
 
     @BeforeEach
-    fun stubSpec() {
+    fun setUp() {
         defaultSpec = EmbeddingSpec(provider = "fake", model = "fake-v1", dim = 3, normalized = true)
         every { embedPort.spec() } returns defaultSpec
+        every { embedPort.embed(any()) } returns EmbeddingVector(floatArrayOf(1f, 0f, 0f), 3, normalized = true)
+        props = buildRetrievalSearchProperties()
+        sut =
+            DefaultSearchUseCase(
+                embedPort = embedPort,
+                vectorStorePort = vectorStorePort,
+                textIndexPort = textIndexPort,
+                props = props,
+                aggregator = aggregator,
+            )
     }
 
     @Test
-    fun `should embed query and search in namespaced collection`() {
-        val input = SearchInput(queryText = "what is in x-bacon?", topK = 3, filter = null)
-        val queryVector = EmbeddingVector(values = floatArrayOf(1f, 0f, 0f), dim = 3, normalized = true)
-        every { embedPort.embed(input.queryText) } returns queryVector
-        val collectionSlot: CapturingSlot<CollectionSpec> = slot()
-        val returned =
-            listOf(
-                SearchMatch(
-                    documentId = DocumentId("doc-1"),
-                    chunk =
-                        TextChunk(
-                            text = "X-Bacon: bun, 150g beef, bacon, cheese, mayo",
-                            metadata = mapOf("store" to "hq"),
-                        ),
-                    score = 0.92,
-                ),
-            )
+    fun `should search both sources with their widths and aggregate respecting topK and filter`() {
+        val input = SearchInput(queryText = "design system", topK = 4, filter = mapOf("lang" to "pt"))
+        val collection = CollectionSpec.fromSpec(defaultSpec)
+        val vectorHits = listOf(match("V1"), match("V2"))
+        val bm25Hits = listOf(match("B1"), match("B2"), match("B3"))
+        val fused = listOf(match("F1"), match("F2"), match("F3"), match("F4"))
+        val queryVecSlot = slot<EmbeddingVector>()
+        val filterVecSlot = slot<Map<String, String>?>()
+        val filterBmSlot = slot<Map<String, String>?>()
         every {
             vectorStorePort.search(
-                collection = capture(collectionSlot),
-                query = queryVector,
-                topK = input.topK,
-                filter = input.filter,
+                collection = collection,
+                query = capture(queryVecSlot),
+                topK = props.vector.width,
+                filter = captureNullable(filterVecSlot),
             )
-        } returns returned
+        } returns vectorHits
+        every {
+            textIndexPort.search(
+                query = input.queryText,
+                width = props.bm25.width,
+                filter = captureNullable(filterBmSlot),
+            )
+        } returns bm25Hits
+        every { aggregator.aggregate(vectorHits = vectorHits, bm25Hits = bm25Hits, k = input.topK) } returns fused
 
-        val out = sut.search(input)
+        val result = sut.search(input)
 
-        assertEquals(returned, out.matches)
-        assertEquals(CollectionSpec("fake", "fake-v1", 3), collectionSlot.captured)
-        verify(exactly = 1) { embedPort.embed(input.queryText) }
-        verify(exactly = 1) { vectorStorePort.search(collectionSlot.captured, queryVector, input.topK, input.filter) }
+        assertEquals(fused, result.matches)
+        verify(exactly = 1) { embedPort.spec() }
+        verify(exactly = 1) { embedPort.embed("design system") }
+        verify(exactly = 1) { vectorStorePort.search(collection, any(), props.vector.width, any()) }
+        verify(exactly = 1) { textIndexPort.search("design system", props.bm25.width, any()) }
+        verify(exactly = 1) { aggregator.aggregate(vectorHits, bm25Hits, 4) }
+        assertEquals(3, queryVecSlot.captured.dim)
+        assertEquals(true, queryVecSlot.captured.normalized)
+        assertEquals(input.filter, filterVecSlot.captured)
+        assertEquals(input.filter, filterBmSlot.captured)
+        confirmVerified(vectorStorePort, textIndexPort, aggregator)
     }
 
     @Test
-    fun `should forward filter and topK to vector store`() {
-        val input =
-            SearchInput(
-                queryText = "menu items with bacon",
-                topK = 5,
-                filter = mapOf("store" to "hq", "type" to "menu"),
-            )
-        val queryVector = EmbeddingVector(values = floatArrayOf(0f, 1f, 0f), dim = 3, normalized = true)
-        every { embedPort.embed(input.queryText) } returns queryVector
-        every { vectorStorePort.search(any(), queryVector, input.topK, input.filter) } returns emptyList()
+    fun `should work when bm25 is disabled using only vector results`() {
+        val disabledBm25 = props.copy(bm25 = props.bm25.copy(enabled = false))
+        val localSut = DefaultSearchUseCase(embedPort, vectorStorePort, textIndexPort, disabledBm25, aggregator)
+        val input = SearchInput(queryText = "hello", topK = 2, filter = null)
+        val collection = CollectionSpec.fromSpec(defaultSpec)
+        val queryVec = embedPort.embed(input.queryText)
+        val vectorHits = listOf(match("V"))
+        every { vectorStorePort.search(collection, queryVec, disabledBm25.vector.width, null) } returns vectorHits
+        every { aggregator.aggregate(vectorHits, emptyList(), k = 2) } returns vectorHits
 
-        val out = sut.search(input)
+        val result = localSut.search(input)
 
-        assertEquals(0, out.matches.size)
-        verify(exactly = 1) { vectorStorePort.search(any(), queryVector, input.topK, input.filter) }
+        assertEquals(1, result.matches.size)
+        verify(exactly = 0) { textIndexPort.search(any(), any(), any()) }
+    }
+
+    @Test
+    fun `should work when vector is disabled using only bm25 results`() {
+        val disabledVector = props.copy(vector = props.vector.copy(enabled = false))
+        val localSut = DefaultSearchUseCase(embedPort, vectorStorePort, textIndexPort, disabledVector, aggregator)
+        val input = SearchInput(queryText = "hello", topK = 2, filter = null)
+        val bm25Hits = listOf(match("B"))
+        every { textIndexPort.search(query = "hello", width = disabledVector.bm25.width, filter = null) } returns bm25Hits
+        every { aggregator.aggregate(emptyList(), bm25Hits, k = 2) } returns bm25Hits
+
+        val result = localSut.search(input)
+
+        assertEquals(1, result.matches.size)
+        verify(exactly = 0) { vectorStorePort.search(any(), any(), any(), any()) }
     }
 
     @ParameterizedTest(name = "{index} => {0}")
@@ -125,4 +173,29 @@ class DefaultSearchUseCaseTest(
     fun `should validate query and topK`(exec: Executable) {
         assertThrows(IllegalArgumentException::class.java, exec)
     }
+
+    private fun match(id: String): SearchMatch =
+        SearchMatch(
+            documentId = DocumentId(id),
+            chunk = TextChunk(text = id, metadata = mapOf("chunk_index" to "0")),
+            score = 1.0,
+        )
+
+    private fun buildRetrievalSearchProperties() =
+        RetrievalSearchProperties(
+            k = 10,
+            vector = RetrievalSearchProperties.Vector(enabled = true, width = 3),
+            bm25 =
+                RetrievalSearchProperties.Bm25(
+                    enabled = true,
+                    width = 5,
+                    termFrequencySaturation = 1.2,
+                    lengthNormalization = 0.75,
+                    stopWordsEnabled = false,
+                    stopWords = emptySet(),
+                ),
+            fusion = RetrievalSearchProperties.Fusion(alpha = 0.4),
+            dedup = RetrievalSearchProperties.Dedup(),
+            mmr = RetrievalSearchProperties.Mmr(),
+        )
 }
