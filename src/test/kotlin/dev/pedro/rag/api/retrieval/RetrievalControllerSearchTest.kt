@@ -4,7 +4,6 @@ import dev.pedro.rag.IntegrationTest
 import dev.pedro.rag.api.retrieval.request.IngestRequest
 import dev.pedro.rag.api.retrieval.request.SearchRequest
 import org.hamcrest.MatcherAssert.assertThat
-import org.hamcrest.Matchers.greaterThan
 import org.hamcrest.Matchers.greaterThanOrEqualTo
 import org.hamcrest.Matchers.lessThanOrEqualTo
 import org.junit.jupiter.api.Test
@@ -16,7 +15,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 class RetrievalControllerSearchTest : IntegrationTest() {
     @Test
-    fun `POST v1_retrieval_search - 200 ok end-to-end`() {
+    fun `POST v1_retrieval_search - 200 ok end-to-end (hybrid)`() {
         val ingest =
             IngestRequest(
                 documentId = "menu-2025-09",
@@ -52,7 +51,7 @@ class RetrievalControllerSearchTest : IntegrationTest() {
 
         val json = mapper.readTree(result.response.contentAsString)
         val matches = json.get("matches")
-        assertThat(matches.size(), greaterThan(0))
+        assertThat(matches.size(), lessThanOrEqualTo(request.topK))
         val score = matches.get(0).get("score").asDouble()
         assertThat(score, greaterThanOrEqualTo(0.0))
         assertThat(score, lessThanOrEqualTo(1.0))
