@@ -3,6 +3,7 @@ package dev.pedro.rag.config.retrieval
 import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.TextIndexPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
+import dev.pedro.rag.application.retrieval.search.ranking.HybridSearchAggregator
 import dev.pedro.rag.application.retrieval.search.usecase.DefaultSearchUseCase
 import dev.pedro.rag.application.retrieval.search.usecase.SearchUseCase
 import dev.pedro.rag.infra.retrieval.metrics.MetricsSearchUseCase
@@ -25,14 +26,24 @@ class RetrievalSearchConfig {
         )
     }
 
+    @Bean
+    fun hybridSearchAggregator(props: RetrievalSearchProperties): HybridSearchAggregator =
+        HybridSearchAggregator(alpha = props.fusion.alpha)
+
     @Bean("searchUseCaseCore")
     fun searchUseCaseCore(
         embedPort: EmbedPort,
         vectorStorePort: VectorStorePort,
+        textIndexPort: TextIndexPort,
+        props: RetrievalSearchProperties,
+        aggregator: HybridSearchAggregator,
     ): SearchUseCase =
         DefaultSearchUseCase(
             embedPort = embedPort,
             vectorStorePort = vectorStorePort,
+            textIndexPort = textIndexPort,
+            props = props,
+            aggregator = aggregator,
         )
 
     @Bean
