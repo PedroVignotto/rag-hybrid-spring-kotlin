@@ -35,8 +35,11 @@ class RetrievalController(
 ) {
     @PostMapping("/ingest", consumes = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
-        summary = "Ingest a document into the vector store",
-        description = "Split text into overlapping chunks, embed them, and upsert into a collection namespaced by {provider, model, dim}.",
+        summary = "Ingest a document into the stores",
+        description = """
+            Split text into overlapping chunks, embed, and upsert into the active vector collection;
+            also indexes chunks in the lexical (BM25) index.
+        """,
     )
     fun ingest(
         @RequestBody @Valid request: IngestRequest,
@@ -44,8 +47,12 @@ class RetrievalController(
 
     @PostMapping("/search", consumes = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
-        summary = "Search top-K chunks by semantic similarity",
-        description = "Embed the query and perform similarity search (cosine/dot depending on normalization).",
+        summary = "Hybrid search (vector + BM25) with fusion",
+        description = """
+            Embeds the query and searches both sources: vector store and BM25 lexical index.
+            Results are normalized per source and fused via α (alpha) weighting, then deduplicated and sorted.
+            Optional 'filter' narrows matches by chunk metadata (e.g. {"lang":"pt","store":"hq"}).
+        """,
     )
     fun search(
         @RequestBody @Valid request: SearchRequest,
