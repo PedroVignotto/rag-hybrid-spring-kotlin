@@ -159,7 +159,7 @@ class MetricsSearchUseCaseTest(
     @Test
     fun `should fallback to Unknown when exception simpleName is null`() {
         val input = SearchInput(queryText = "bacon", topK = 3, filter = null)
-        val anonymousEx = object : RuntimeException("oops") {} // simpleName == null
+        val anonymousEx = object : RuntimeException("oops") {}
         every { delegate.search(input) } throws anonymousEx
 
         assertThatThrownBy { sut.search(input) }.isInstanceOf(RuntimeException::class.java)

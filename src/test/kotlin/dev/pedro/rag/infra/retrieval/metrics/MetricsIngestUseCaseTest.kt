@@ -150,7 +150,7 @@ class MetricsIngestUseCaseTest(
     @Test
     fun `should fallback to Unknown when exception simpleName is null`() {
         val input = ingestInput()
-        val anonymousEx = object : RuntimeException("oops") {} // simpleName == null
+        val anonymousEx = object : RuntimeException("oops") {}
         every { delegate.ingest(input) } throws anonymousEx
 
         assertThatThrownBy { sut.ingest(input) }.isInstanceOf(RuntimeException::class.java)

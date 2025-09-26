@@ -173,7 +173,7 @@ class OllamaEmbeddingHttpClientTest {
     fun `should fail fast in window when one embed returns non-2xx`() =
         withServerDispatcher(handler = { req ->
             val json = mapper.readTree(req.body.readUtf8())
-            val input = json["input"].asText() // ex.: "t7"
+            val input = json["input"].asText()
             if (input == "t7") {
                 MockResponse().setResponseCode(500).setBody("boom")
             } else {
