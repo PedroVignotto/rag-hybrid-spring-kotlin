@@ -5,6 +5,8 @@ import dev.pedro.rag.application.retrieval.ports.TextIndexPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.application.retrieval.search.dto.SearchInput
 import dev.pedro.rag.application.retrieval.search.ranking.HybridSearchAggregator
+import dev.pedro.rag.application.retrieval.search.ranking.MmrReRanker
+import dev.pedro.rag.application.retrieval.search.ranking.SoftDedupFilter
 import dev.pedro.rag.config.retrieval.RetrievalSearchProperties
 import dev.pedro.rag.domain.retrieval.CollectionSpec
 import dev.pedro.rag.domain.retrieval.DocumentId
@@ -12,13 +14,12 @@ import dev.pedro.rag.domain.retrieval.EmbeddingSpec
 import dev.pedro.rag.domain.retrieval.EmbeddingVector
 import dev.pedro.rag.domain.retrieval.SearchMatch
 import dev.pedro.rag.domain.retrieval.TextChunk
-import io.mockk.confirmVerified
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
-import io.mockk.slot
 import io.mockk.verify
+import io.mockk.verifyOrder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
@@ -39,6 +40,10 @@ class DefaultSearchUseCaseTest {
 
     @MockK lateinit var aggregator: HybridSearchAggregator
 
+    @MockK lateinit var softDedupFilter: SoftDedupFilter
+
+    @MockK lateinit var mmrReRanker: MmrReRanker
+
     private lateinit var props: RetrievalSearchProperties
     private lateinit var sut: DefaultSearchUseCase
     private lateinit var defaultSpec: EmbeddingSpec
@@ -50,29 +55,22 @@ class DefaultSearchUseCaseTest {
                 name: String,
                 block: () -> Unit,
             ) = Named.of(name, Executable { block() })
-            val props = RetrievalSearchProperties()
+            val sut =
+                DefaultSearchUseCase(
+                    embedPort = mockk(),
+                    vectorStorePort = mockk(),
+                    textIndexPort = mockk(),
+                    props = RetrievalSearchProperties(),
+                    aggregator = mockk(),
+                    softDedupFilter = mockk(),
+                    mmrReRanker = mockk(),
+                )
             return listOf(
                 named("blank query") {
-                    val useCase =
-                        DefaultSearchUseCase(
-                            embedPort = mockk(),
-                            vectorStorePort = mockk(),
-                            textIndexPort = mockk(),
-                            props = props,
-                            aggregator = mockk(),
-                        )
-                    useCase.search(SearchInput(queryText = "   ", topK = 3, filter = null))
+                    sut.search(SearchInput(queryText = "   ", topK = 3, filter = null))
                 },
                 named("topK <= 0") {
-                    val useCase =
-                        DefaultSearchUseCase(
-                            embedPort = mockk(),
-                            vectorStorePort = mockk(),
-                            textIndexPort = mockk(),
-                            props = props,
-                            aggregator = mockk(),
-                        )
-                    useCase.search(SearchInput(queryText = "ok", topK = 0, filter = null))
+                    sut.search(SearchInput(queryText = "ok", topK = 0, filter = null))
                 },
             )
         }
@@ -83,89 +81,96 @@ class DefaultSearchUseCaseTest {
         defaultSpec = EmbeddingSpec(provider = "fake", model = "fake-v1", dim = 3, normalized = true)
         every { embedPort.spec() } returns defaultSpec
         every { embedPort.embed(any()) } returns EmbeddingVector(floatArrayOf(1f, 0f, 0f), 3, normalized = true)
-        props = buildRetrievalSearchProperties()
-        sut =
-            DefaultSearchUseCase(
-                embedPort = embedPort,
-                vectorStorePort = vectorStorePort,
-                textIndexPort = textIndexPort,
-                props = props,
-                aggregator = aggregator,
-            )
+        props = RetrievalSearchProperties()
+        sut = buildSutWith(props)
     }
 
     @Test
-    fun `should search both sources with their widths and aggregate respecting topK and filter`() {
-        val input = SearchInput(queryText = "design system", topK = 4, filter = mapOf("lang" to "pt"))
+    fun `should retrieve, aggregate, soft-dedup, mmr and return topK when all enabled`() {
+        val input = SearchInput(queryText = "design system", topK = 3, filter = null)
         val collection = CollectionSpec.fromSpec(defaultSpec)
         val vectorHits = listOf(match("V1"), match("V2"))
         val bm25Hits = listOf(match("B1"), match("B2"), match("B3"))
-        val fused = listOf(match("F1"), match("F2"), match("F3"), match("F4"))
-        val queryVecSlot = slot<EmbeddingVector>()
-        val filterVecSlot = slot<Map<String, String>?>()
-        val filterBmSlot = slot<Map<String, String>?>()
-        every {
-            vectorStorePort.search(
-                collection = collection,
-                query = capture(queryVecSlot),
-                topK = props.vector.width,
-                filter = captureNullable(filterVecSlot),
-            )
-        } returns vectorHits
-        every {
-            textIndexPort.search(
-                query = input.queryText,
-                width = props.bm25.width,
-                filter = captureNullable(filterBmSlot),
-            )
-        } returns bm25Hits
-        every { aggregator.aggregate(vectorHits = vectorHits, bm25Hits = bm25Hits, k = input.topK) } returns fused
+        val fused = listOf(match("F1"), match("F2"), match("F3"), match("F4"), match("F5"))
+        val afterSoft = listOf(fused[0], fused[2], fused[3], fused[4])
+        val reranked = listOf(afterSoft[1], afterSoft[0], afterSoft[2])
+        every { vectorStorePort.search(collection, any(), props.vector.width, null) } returns vectorHits
+        every { textIndexPort.search(input.queryText, props.bm25.width, null) } returns bm25Hits
+        every { aggregator.aggregate(any(), any(), any()) } returns fused
+        every { softDedupFilter.filter(fused) } returns afterSoft
+        every { mmrReRanker.rerank(afterSoft, input.topK) } returns reranked
 
         val result = sut.search(input)
 
-        assertEquals(fused, result.matches)
-        verify(exactly = 1) { embedPort.spec() }
-        verify(exactly = 1) { embedPort.embed("design system") }
-        verify(exactly = 1) { vectorStorePort.search(collection, any(), props.vector.width, any()) }
-        verify(exactly = 1) { textIndexPort.search("design system", props.bm25.width, any()) }
-        verify(exactly = 1) { aggregator.aggregate(vectorHits, bm25Hits, 4) }
-        assertEquals(3, queryVecSlot.captured.dim)
-        assertEquals(true, queryVecSlot.captured.normalized)
-        assertEquals(input.filter, filterVecSlot.captured)
-        assertEquals(input.filter, filterBmSlot.captured)
-        confirmVerified(vectorStorePort, textIndexPort, aggregator)
+        assertEquals(listOf("F3", "F1", "F4"), result.matches.map { it.documentId.value })
+        verifyOrder {
+            aggregator.aggregate(vectorHits, bm25Hits, any())
+            softDedupFilter.filter(fused)
+            mmrReRanker.rerank(afterSoft, input.topK)
+        }
     }
 
     @Test
-    fun `should work when bm25 is disabled using only vector results`() {
-        val disabledBm25 = props.copy(bm25 = props.bm25.copy(enabled = false))
-        val localSut = DefaultSearchUseCase(embedPort, vectorStorePort, textIndexPort, disabledBm25, aggregator)
+    fun `should work with bm25 disabled using vector only (still soft+mmr enabled)`() {
+        val enabledVectorOnly = props.copy(bm25 = props.bm25.copy(enabled = false))
+        val localSut = buildSutWith(enabledVectorOnly)
         val input = SearchInput(queryText = "hello", topK = 2, filter = null)
         val collection = CollectionSpec.fromSpec(defaultSpec)
-        val queryVec = embedPort.embed(input.queryText)
-        val vectorHits = listOf(match("V"))
-        every { vectorStorePort.search(collection, queryVec, disabledBm25.vector.width, null) } returns vectorHits
-        every { aggregator.aggregate(vectorHits, emptyList(), k = 2) } returns vectorHits
+        val vectorHits = listOf(match("V1"), match("V2"), match("V3"))
+        val afterSoft = listOf(vectorHits[0], vectorHits[2])
+        val reranked = listOf(afterSoft[1], afterSoft[0])
+        every { vectorStorePort.search(collection, any(), enabledVectorOnly.vector.width, null) } returns vectorHits
+        every { aggregator.aggregate(vectorHits, emptyList(), any()) } returns vectorHits
+        every { softDedupFilter.filter(vectorHits) } returns afterSoft
+        every { mmrReRanker.rerank(afterSoft, input.topK) } returns reranked
 
         val result = localSut.search(input)
 
-        assertEquals(1, result.matches.size)
+        assertEquals(listOf("V3", "V1"), result.matches.map { it.documentId.value })
         verify(exactly = 0) { textIndexPort.search(any(), any(), any()) }
     }
 
     @Test
-    fun `should work when vector is disabled using only bm25 results`() {
-        val disabledVector = props.copy(vector = props.vector.copy(enabled = false))
-        val localSut = DefaultSearchUseCase(embedPort, vectorStorePort, textIndexPort, disabledVector, aggregator)
+    fun `should work with vector disabled using bm25 only (still soft+mmr enabled)`() {
+        val enabledBm25Only = props.copy(vector = props.vector.copy(enabled = false))
+        val localSut = buildSutWith(enabledBm25Only)
         val input = SearchInput(queryText = "hello", topK = 2, filter = null)
-        val bm25Hits = listOf(match("B"))
-        every { textIndexPort.search(query = "hello", width = disabledVector.bm25.width, filter = null) } returns bm25Hits
-        every { aggregator.aggregate(emptyList(), bm25Hits, k = 2) } returns bm25Hits
+        val bm25Hits = listOf(match("B1"), match("B2"), match("B3"))
+        val afterSoft = listOf(bm25Hits[0], bm25Hits[2])
+        val reranked = listOf(afterSoft[1], afterSoft[0])
+        every { textIndexPort.search("hello", enabledBm25Only.bm25.width, null) } returns bm25Hits
+        every { aggregator.aggregate(emptyList(), bm25Hits, any()) } returns bm25Hits
+        every { softDedupFilter.filter(bm25Hits) } returns afterSoft
+        every { mmrReRanker.rerank(afterSoft, input.topK) } returns reranked
 
         val result = localSut.search(input)
 
-        assertEquals(1, result.matches.size)
+        assertEquals(listOf("B3", "B1"), result.matches.map { it.documentId.value })
         verify(exactly = 0) { vectorStorePort.search(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `should skip soft dedup and mmr when both disabled and return fused_take_topK`() {
+        val bothDisabled =
+            props.copy(
+                dedup = props.dedup.copy(soft = props.dedup.soft.copy(enabled = false)),
+                mmr = props.mmr.copy(enabled = false),
+            )
+        val localSut = buildSutWith(bothDisabled)
+        val input = SearchInput(queryText = "both off", topK = 3, filter = mapOf("lang" to "pt"))
+        val collection = CollectionSpec.fromSpec(defaultSpec)
+        val vectorHits = listOf(match("V1"), match("V2"))
+        val bm25Hits = listOf(match("B1"), match("B2"), match("B3"))
+        val fused = listOf(match("F1"), match("F2"), match("F3"), match("F4"))
+        every { vectorStorePort.search(collection, any(), bothDisabled.vector.width, input.filter) } returns vectorHits
+        every { textIndexPort.search(input.queryText, bothDisabled.bm25.width, input.filter) } returns bm25Hits
+        every { aggregator.aggregate(vectorHits, bm25Hits, any()) } returns fused
+
+        val result = localSut.search(input)
+
+        assertEquals(listOf("F1", "F2", "F3"), result.matches.map { it.documentId.value })
+        verify(exactly = 0) { softDedupFilter.filter(any()) }
+        verify(exactly = 0) { mmrReRanker.rerank(any(), any()) }
     }
 
     @ParameterizedTest(name = "{index} => {0}")
@@ -181,21 +186,14 @@ class DefaultSearchUseCaseTest {
             score = 1.0,
         )
 
-    private fun buildRetrievalSearchProperties() =
-        RetrievalSearchProperties(
-            k = 10,
-            vector = RetrievalSearchProperties.Vector(enabled = true, width = 3),
-            bm25 =
-                RetrievalSearchProperties.Bm25(
-                    enabled = true,
-                    width = 5,
-                    termFrequencySaturation = 1.2,
-                    lengthNormalization = 0.75,
-                    stopWordsEnabled = false,
-                    stopWords = emptySet(),
-                ),
-            fusion = RetrievalSearchProperties.Fusion(alpha = 0.4),
-            dedup = RetrievalSearchProperties.Dedup(),
-            mmr = RetrievalSearchProperties.Mmr(),
+    private fun buildSutWith(props: RetrievalSearchProperties) =
+        DefaultSearchUseCase(
+            embedPort = embedPort,
+            vectorStorePort = vectorStorePort,
+            textIndexPort = textIndexPort,
+            props = props,
+            aggregator = aggregator,
+            softDedupFilter = softDedupFilter,
+            mmrReRanker = mmrReRanker,
         )
 }
