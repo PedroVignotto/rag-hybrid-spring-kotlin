@@ -4,6 +4,8 @@ import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.ports.TextIndexPort
 import dev.pedro.rag.application.retrieval.ports.VectorStorePort
 import dev.pedro.rag.application.retrieval.search.ranking.HybridSearchAggregator
+import dev.pedro.rag.application.retrieval.search.ranking.MmrReRanker
+import dev.pedro.rag.application.retrieval.search.ranking.SoftDedupFilter
 import dev.pedro.rag.application.retrieval.search.usecase.DefaultSearchUseCase
 import dev.pedro.rag.application.retrieval.search.usecase.SearchUseCase
 import dev.pedro.rag.infra.retrieval.metrics.MetricsSearchUseCase
@@ -30,6 +32,13 @@ class RetrievalSearchConfig {
     fun hybridSearchAggregator(props: RetrievalSearchProperties): HybridSearchAggregator =
         HybridSearchAggregator(alpha = props.fusion.alpha)
 
+    @Bean
+    fun softDedupFilter(props: RetrievalSearchProperties): SoftDedupFilter =
+        SoftDedupFilter(overlapThreshold = props.dedup.soft.overlapThreshold)
+
+    @Bean
+    fun mmrReRanker(props: RetrievalSearchProperties): MmrReRanker = MmrReRanker(lambda = props.mmr.lambda)
+
     @Bean("searchUseCaseCore")
     fun searchUseCaseCore(
         embedPort: EmbedPort,
@@ -37,6 +46,8 @@ class RetrievalSearchConfig {
         textIndexPort: TextIndexPort,
         props: RetrievalSearchProperties,
         aggregator: HybridSearchAggregator,
+        softDedupFilter: SoftDedupFilter,
+        mmrReRanker: MmrReRanker,
     ): SearchUseCase =
         DefaultSearchUseCase(
             embedPort = embedPort,
@@ -44,6 +55,8 @@ class RetrievalSearchConfig {
             textIndexPort = textIndexPort,
             props = props,
             aggregator = aggregator,
+            softDedupFilter = softDedupFilter,
+            mmrReRanker = mmrReRanker,
         )
 
     @Bean
