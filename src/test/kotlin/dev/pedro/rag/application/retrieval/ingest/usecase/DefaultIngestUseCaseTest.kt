@@ -129,6 +129,7 @@ class DefaultIngestUseCaseTest(
         verify(exactly = 1) { chunker.split(input.text, input.chunkSize, input.overlap) }
         verify(exactly = 1) { embedPort.embedAll(listOf("ABCDE", "DEFGH", "GHIJ", "J")) }
         verify(exactly = 1) { vectorStorePort.upsert(any(), any(), any()) }
+        verify(exactly = 1) { textIndexPort.delete(DocumentId("doc-1")) }
         verify(exactly = 1) { textIndexPort.index(capture(indexDocSlot), capture(indexChunksSlot)) }
         assertEquals(DocumentId("doc-1"), indexDocSlot.captured)
         assertEquals(listOf("ABCDE", "DEFGH", "GHIJ", "J"), indexChunksSlot.captured.map { it.text })
@@ -147,6 +148,7 @@ class DefaultIngestUseCaseTest(
         verify(exactly = 1) { embedPort.spec() }
         verify(exactly = 0) { embedPort.embedAll(any()) }
         verify(exactly = 0) { vectorStorePort.upsert(any(), any(), any()) }
+        verify(exactly = 0) { textIndexPort.delete(any()) }
         verify(exactly = 0) { textIndexPort.index(any(), any()) }
     }
 
@@ -160,8 +162,9 @@ class DefaultIngestUseCaseTest(
             )
 
         assertThrows(IllegalArgumentException::class.java) { sut.ingest(input) }
+        verify(exactly = 1) { textIndexPort.delete(DocumentId("doc-valid")) }
+        verify(exactly = 1) { textIndexPort.index(DocumentId("doc-valid"), any()) }
         verify(exactly = 0) { vectorStorePort.upsert(any(), any(), any()) }
-        verify(exactly = 0) { textIndexPort.index(any(), any()) }
     }
 
     @ParameterizedTest(name = "{index} => {0}")
