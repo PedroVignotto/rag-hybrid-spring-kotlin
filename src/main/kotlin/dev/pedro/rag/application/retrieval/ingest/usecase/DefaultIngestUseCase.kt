@@ -26,6 +26,8 @@ class DefaultIngestUseCase(
             return IngestOutput(documentId = input.documentId, chunksIngested = 0)
         }
         val chunks = mergeBaseAndChunkMetadata(input.baseMetadata, rawChunks)
+        textIndexPort.delete(input.documentId)
+        textIndexPort.index(input.documentId, chunks)
         val embeddings: List<EmbeddingVector> = embedPort.embedAll(chunks.map { it.text })
         validateEmbeddingDimensions(embeddings, embeddingSpec)
         vectorStorePort.upsert(
@@ -33,7 +35,6 @@ class DefaultIngestUseCase(
             documentId = input.documentId,
             items = chunks.zip(embeddings),
         )
-        textIndexPort.index(input.documentId, chunks)
         return IngestOutput(documentId = input.documentId, chunksIngested = chunks.size)
     }
 
