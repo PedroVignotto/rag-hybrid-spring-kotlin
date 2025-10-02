@@ -4,6 +4,5 @@ interface ContextBuilder {
     fun build(
         sources: List<ContextSource>,
         budgetChars: Int,
-        maxChunksPerDoc: Int,
     ): BuiltContext
 }
