@@ -1,10 +1,7 @@
 package dev.pedro.rag.application.retrieval.ask.parsing.output
 
-import dev.pedro.rag.application.retrieval.ask.parsing.output.OutputParser
-import dev.pedro.rag.application.retrieval.ask.parsing.output.ParsedOutput
-
 internal class DefaultOutputParser(
-    private val allowNsFromAnswer: Boolean = false
+    private val allowNsFromAnswer: Boolean = false,
 ) : OutputParser {
     companion object {
         private val ANSWER_REGEX = Regex("""(?si)ANSWER:\s*(.*?)\s*\n\s*CITATIONS:""")
