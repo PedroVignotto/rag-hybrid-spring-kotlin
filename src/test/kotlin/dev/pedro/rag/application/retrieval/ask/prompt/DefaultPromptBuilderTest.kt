@@ -8,24 +8,25 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
 class DefaultPromptBuilderTest {
-
     private val localization = FakePromptLocalization()
 
-    private val sut = DefaultPromptBuilder(
-        localization = localization,
-        requireCitations = true,
-        requireAdmitUnknown = true,
-        autoDetectLang = true
-    )
+    private val sut =
+        DefaultPromptBuilder(
+            localization = localization,
+            requireCitations = true,
+            requireAdmitUnknown = true,
+            autoDetectLang = true,
+        )
 
     @Test
     fun `should build Portuguese prompt when lang is pt-BR`() {
-        val ctx = BuiltContext(
-            text = "[1] Tem opções vegetarianas e aceita Pix.",
-            index = listOf(CitationIndex(1, "ze-menu-001", "Zé - Menu", 0)),
-            usedK = 1,
-            truncated = false
-        )
+        val ctx =
+            BuiltContext(
+                text = "[1] Tem opções vegetarianas e aceita Pix.",
+                index = listOf(CitationIndex(1, "ze-menu-001", "Zé - Menu", 0)),
+                usedK = 1,
+                truncated = false,
+            )
 
         val payload = sut.build(ctx, query = "Tem veggie?", lang = "pt-BR")
 
@@ -50,15 +51,17 @@ class DefaultPromptBuilderTest {
 
     @Test
     fun `should include reference index lines when citations exist`() {
-        val ctx = BuiltContext(
-            text = "[1] A\n\n[2] B",
-            index = listOf(
-                CitationIndex(1, "doc-1", "Title 1", 0),
-                CitationIndex(2, "doc-2", "Title 2", 3),
-            ),
-            usedK = 2,
-            truncated = false
-        )
+        val ctx =
+            BuiltContext(
+                text = "[1] A\n\n[2] B",
+                index =
+                    listOf(
+                        CitationIndex(1, "doc-1", "Title 1", 0),
+                        CitationIndex(2, "doc-2", "Title 2", 3),
+                    ),
+                usedK = 2,
+                truncated = false,
+            )
 
         val payload = sut.build(ctx, query = "q", lang = "en")
 
@@ -69,12 +72,13 @@ class DefaultPromptBuilderTest {
 
     @Test
     fun `should always enforce output sections with placeholders`() {
-        val ctx = BuiltContext(
-            text = "[1] X",
-            index = listOf(CitationIndex(1, "d", "t", 0)),
-            usedK = 1,
-            truncated = false
-        )
+        val ctx =
+            BuiltContext(
+                text = "[1] X",
+                index = listOf(CitationIndex(1, "d", "t", 0)),
+                usedK = 1,
+                truncated = false,
+            )
 
         val payload = sut.build(ctx, query = "q", lang = "en")
 
@@ -86,18 +90,20 @@ class DefaultPromptBuilderTest {
 
     @Test
     fun `should omit cite and admit-unknown rules when flags are disabled`() {
-        val sutNoRules = DefaultPromptBuilder(
-            localization = localization,
-            requireCitations = false,
-            requireAdmitUnknown = false,
-            autoDetectLang = true
-        )
-        val ctx = BuiltContext(
-            text = "[1] X",
-            index = listOf(CitationIndex(1, "d", "t", 0)),
-            usedK = 1,
-            truncated = false
-        )
+        val sutNoRules =
+            DefaultPromptBuilder(
+                localization = localization,
+                requireCitations = false,
+                requireAdmitUnknown = false,
+                autoDetectLang = true,
+            )
+        val ctx =
+            BuiltContext(
+                text = "[1] X",
+                index = listOf(CitationIndex(1, "d", "t", 0)),
+                usedK = 1,
+                truncated = false,
+            )
 
         val payload = sutNoRules.build(ctx, query = "q", lang = "en")
 
@@ -109,18 +115,20 @@ class DefaultPromptBuilderTest {
 
     @Test
     fun `should default to english when autodetect is disabled and lang is null`() {
-        val sutNoAuto = DefaultPromptBuilder(
-            localization = localization,
-            requireCitations = true,
-            requireAdmitUnknown = true,
-            autoDetectLang = false
-        )
+        val sutNoAuto =
+            DefaultPromptBuilder(
+                localization = localization,
+                requireCitations = true,
+                requireAdmitUnknown = true,
+                autoDetectLang = false,
+            )
 
-        val payload = sutNoAuto.build(
-            context = BuiltContext(text = "", index = emptyList(), usedK = 0, truncated = false),
-            query = "tem promoção hoje?",
-            lang = null
-        )
+        val payload =
+            sutNoAuto.build(
+                context = BuiltContext(text = "", index = emptyList(), usedK = 0, truncated = false),
+                query = "tem promoção hoje?",
+                lang = null,
+            )
 
         assertThat(payload.user).contains("CONTEXT:")
         assertThat(payload.user).doesNotContain("CONTEXTO:")
@@ -160,7 +168,7 @@ class DefaultPromptBuilderTest {
                     question = "PERGUNTA",
                     responseFormatIntro = "Formate sua resposta exatamente assim (sem adicionar outras seções):",
                     contextEmptyHint = "<sem contexto disponível>",
-                    answerHere = "resposta aqui"
+                    answerHere = "resposta aqui",
                 )
             } else {
                 PromptLabels(
@@ -174,7 +182,7 @@ class DefaultPromptBuilderTest {
                     question = "QUESTION",
                     responseFormatIntro = "Format your response exactly like this (do not add extra sections):",
                     contextEmptyHint = "<no context available>",
-                    answerHere = "answer here"
+                    answerHere = "answer here",
                 )
             }
         }

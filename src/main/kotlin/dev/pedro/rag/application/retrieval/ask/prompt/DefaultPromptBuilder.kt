@@ -10,10 +10,11 @@ internal class DefaultPromptBuilder(
     private val autoDetectLang: Boolean = true,
 ) : PromptBuilder {
     companion object {
-        private val PT_HINTS = setOf(
-            "que horas", "pix", "promoção", "promo", "entrega", "taxa",
-            "domingo", "horário", "qual", "tem", "aceita"
-        )
+        private val PT_HINTS =
+            setOf(
+                "que horas", "pix", "promoção", "promo", "entrega", "taxa",
+                "domingo", "horário", "qual", "tem", "aceita",
+            )
         private val DIACRITICS_PT = setOf("ã", "õ", "ç", "é", "ê", "á", "í", "ó", "ú")
     }
 
@@ -24,44 +25,49 @@ internal class DefaultPromptBuilder(
     ): PromptPayload {
         val targetLang = resolveLang(lang, query)
         val labels = localization.labels(targetLang)
-        val system = buildString {
-            appendLine(labels.systemHeader)
-            appendLine()
-            appendLine("1) ${labels.ruleUseOnlyContext}")
-            if (requireCitations) appendLine("2) ${labels.ruleCiteAllWithN}")
-            if (requireAdmitUnknown) appendLine("3) ${labels.ruleAdmitUnknown}")
-            appendLine("4) ${labels.ruleOutputFormat}")
-        }
-        val user = buildString {
-            appendLine("${labels.context}:")
-            if (context.text.isBlank()) {
-                appendLine(labels.contextEmptyHint)
-            } else {
-                appendLine(context.text.trim())
-            }
-            if (context.index.isNotEmpty()) {
+        val system =
+            buildString {
+                appendLine(labels.systemHeader)
                 appendLine()
-                appendLine("${labels.referenceIndex}:")
-                context.index.forEach { ci ->
-                    appendLine("[${ci.n}] ${ci.documentId}#chunk${ci.chunkIndex} — ${ci.title}")
-                }
+                appendLine("1) ${labels.ruleUseOnlyContext}")
+                if (requireCitations) appendLine("2) ${labels.ruleCiteAllWithN}")
+                if (requireAdmitUnknown) appendLine("3) ${labels.ruleAdmitUnknown}")
+                appendLine("4) ${labels.ruleOutputFormat}")
             }
-            appendLine()
-            appendLine("${labels.question}:")
-            appendLine(query.trim())
-            appendLine()
-            appendLine(labels.responseFormatIntro)
-            appendLine("ANSWER:")
-            appendLine("<${labels.answerHere}>")
-            appendLine()
-            appendLine("CITATIONS:")
-            appendLine("[1] <documentId>#chunk<idx>")
-            appendLine("[2] ...")
-        }
+        val user =
+            buildString {
+                appendLine("${labels.context}:")
+                if (context.text.isBlank()) {
+                    appendLine(labels.contextEmptyHint)
+                } else {
+                    appendLine(context.text.trim())
+                }
+                if (context.index.isNotEmpty()) {
+                    appendLine()
+                    appendLine("${labels.referenceIndex}:")
+                    context.index.forEach { ci ->
+                        appendLine("[${ci.n}] ${ci.documentId}#chunk${ci.chunkIndex} — ${ci.title}")
+                    }
+                }
+                appendLine()
+                appendLine("${labels.question}:")
+                appendLine(query.trim())
+                appendLine()
+                appendLine(labels.responseFormatIntro)
+                appendLine("ANSWER:")
+                appendLine("<${labels.answerHere}>")
+                appendLine()
+                appendLine("CITATIONS:")
+                appendLine("[1] <documentId>#chunk<idx>")
+                appendLine("[2] ...")
+            }
         return PromptPayload(system = system.trimEnd(), user = user.trimEnd())
     }
 
-    private fun resolveLang(explicitLang: String?, query: String): String {
+    private fun resolveLang(
+        explicitLang: String?,
+        query: String,
+    ): String {
         val explicit = explicitLang?.trim()
         if (!explicit.isNullOrEmpty()) return explicit
         if (!autoDetectLang) return "en"

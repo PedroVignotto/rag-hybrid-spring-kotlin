@@ -6,7 +6,6 @@ import org.springframework.context.support.StaticMessageSource
 import java.util.Locale
 
 class DefaultPromptLocalizationTest {
-
     private val sut = DefaultPromptLocalization(baseMessageSource())
 
     @Test
@@ -55,28 +54,28 @@ class DefaultPromptLocalizationTest {
     private fun baseMessageSource(): StaticMessageSource {
         val sms = StaticMessageSource()
         val en = Locale.ENGLISH
-        sms.addMessage("prompt.system.header",        en, "EN-SYSTEM")
-        sms.addMessage("prompt.rule.useOnlyContext",  en, "EN-USE-ONLY-CONTEXT")
-        sms.addMessage("prompt.rule.citeAll",         en, "EN-CITE-ALL")
-        sms.addMessage("prompt.rule.admitUnknown",    en, "EN-ADMIT-UNKNOWN")
-        sms.addMessage("prompt.rule.outputFormat",    en, "EN-OUTPUT-FORMAT")
-        sms.addMessage("prompt.label.context",        en, "EN-CONTEXT")
+        sms.addMessage("prompt.system.header", en, "EN-SYSTEM")
+        sms.addMessage("prompt.rule.useOnlyContext", en, "EN-USE-ONLY-CONTEXT")
+        sms.addMessage("prompt.rule.citeAll", en, "EN-CITE-ALL")
+        sms.addMessage("prompt.rule.admitUnknown", en, "EN-ADMIT-UNKNOWN")
+        sms.addMessage("prompt.rule.outputFormat", en, "EN-OUTPUT-FORMAT")
+        sms.addMessage("prompt.label.context", en, "EN-CONTEXT")
         sms.addMessage("prompt.label.referenceIndex", en, "EN-REFERENCE-INDEX")
-        sms.addMessage("prompt.label.question",       en, "EN-QUESTION")
+        sms.addMessage("prompt.label.question", en, "EN-QUESTION")
         sms.addMessage("prompt.response.formatIntro", en, "EN-FORMAT-INTRO")
-        sms.addMessage("prompt.context.empty",        en, "EN-CONTEXT-EMPTY")
-        sms.addMessage("prompt.answer.placeholder",   en, "EN-ANSWER-HERE")
+        sms.addMessage("prompt.context.empty", en, "EN-CONTEXT-EMPTY")
+        sms.addMessage("prompt.answer.placeholder", en, "EN-ANSWER-HERE")
         val ptBR = Locale.forLanguageTag("pt-BR")
-        sms.addMessage("prompt.system.header",        ptBR, "PT-SISTEMA")
-        sms.addMessage("prompt.rule.useOnlyContext",  ptBR, "PT-USE-ONLY-CONTEXT")
-        sms.addMessage("prompt.rule.citeAll",         ptBR, "PT-CITE-ALL")
-        sms.addMessage("prompt.rule.admitUnknown",    ptBR, "PT-ADMIT-UNKNOWN")
-        sms.addMessage("prompt.rule.outputFormat",    ptBR, "PT-OUTPUT-FORMAT")
-        sms.addMessage("prompt.label.context",        ptBR, "PT-CONTEXTO")
+        sms.addMessage("prompt.system.header", ptBR, "PT-SISTEMA")
+        sms.addMessage("prompt.rule.useOnlyContext", ptBR, "PT-USE-ONLY-CONTEXT")
+        sms.addMessage("prompt.rule.citeAll", ptBR, "PT-CITE-ALL")
+        sms.addMessage("prompt.rule.admitUnknown", ptBR, "PT-ADMIT-UNKNOWN")
+        sms.addMessage("prompt.rule.outputFormat", ptBR, "PT-OUTPUT-FORMAT")
+        sms.addMessage("prompt.label.context", ptBR, "PT-CONTEXTO")
         sms.addMessage("prompt.label.referenceIndex", ptBR, "PT-INDICE-REFERENCIA")
-        sms.addMessage("prompt.label.question",       ptBR, "PT-PERGUNTA")
+        sms.addMessage("prompt.label.question", ptBR, "PT-PERGUNTA")
         sms.addMessage("prompt.response.formatIntro", ptBR, "PT-FORMATO-INTRO")
-        sms.addMessage("prompt.answer.placeholder",   ptBR, "PT-RESPOSTA-AQUI")
+        sms.addMessage("prompt.answer.placeholder", ptBR, "PT-RESPOSTA-AQUI")
         return sms
     }
 }

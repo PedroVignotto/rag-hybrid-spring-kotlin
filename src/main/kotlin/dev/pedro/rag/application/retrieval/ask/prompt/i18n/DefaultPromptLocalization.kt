@@ -1,27 +1,26 @@
 package dev.pedro.rag.application.retrieval.ask.prompt.i18n
 
-import java.util.Locale
 import org.springframework.context.MessageSource
+import java.util.Locale
 
 internal class DefaultPromptLocalization(
     private val messageSource: MessageSource,
-    private val fallbackLocale: Locale = Locale.ENGLISH
+    private val fallbackLocale: Locale = Locale.ENGLISH,
 ) : PromptLocalization {
-
     override fun labels(lang: String?): PromptLabels {
         val locale = resolveLocale(lang)
         return PromptLabels(
-            systemHeader        = messageOrEnglishFallback("prompt.system.header", locale),
-            ruleUseOnlyContext  = messageOrEnglishFallback("prompt.rule.useOnlyContext", locale),
-            ruleCiteAllWithN    = messageOrEnglishFallback("prompt.rule.citeAll", locale),
-            ruleAdmitUnknown    = messageOrEnglishFallback("prompt.rule.admitUnknown", locale),
-            ruleOutputFormat    = messageOrEnglishFallback("prompt.rule.outputFormat", locale),
-            context             = messageOrEnglishFallback("prompt.label.context", locale),
-            referenceIndex      = messageOrEnglishFallback("prompt.label.referenceIndex", locale),
-            question            = messageOrEnglishFallback("prompt.label.question", locale),
+            systemHeader = messageOrEnglishFallback("prompt.system.header", locale),
+            ruleUseOnlyContext = messageOrEnglishFallback("prompt.rule.useOnlyContext", locale),
+            ruleCiteAllWithN = messageOrEnglishFallback("prompt.rule.citeAll", locale),
+            ruleAdmitUnknown = messageOrEnglishFallback("prompt.rule.admitUnknown", locale),
+            ruleOutputFormat = messageOrEnglishFallback("prompt.rule.outputFormat", locale),
+            context = messageOrEnglishFallback("prompt.label.context", locale),
+            referenceIndex = messageOrEnglishFallback("prompt.label.referenceIndex", locale),
+            question = messageOrEnglishFallback("prompt.label.question", locale),
             responseFormatIntro = messageOrEnglishFallback("prompt.response.formatIntro", locale),
-            contextEmptyHint    = messageOrEnglishFallback("prompt.context.empty", locale),
-            answerHere          = messageOrEnglishFallback("prompt.answer.placeholder", locale),
+            contextEmptyHint = messageOrEnglishFallback("prompt.context.empty", locale),
+            answerHere = messageOrEnglishFallback("prompt.answer.placeholder", locale),
         )
     }
 
@@ -34,7 +33,10 @@ internal class DefaultPromptLocalization(
         }
     }
 
-    private fun messageOrEnglishFallback(key: String, locale: Locale): String {
+    private fun messageOrEnglishFallback(
+        key: String,
+        locale: Locale,
+    ): String {
         val english = messageSource.getMessage(key, null, key, Locale.ENGLISH) ?: key
         return messageSource.getMessage(key, null, english, locale) ?: english
     }
