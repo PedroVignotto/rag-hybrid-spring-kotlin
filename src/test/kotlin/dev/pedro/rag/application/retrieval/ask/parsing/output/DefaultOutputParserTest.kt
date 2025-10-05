@@ -1,6 +1,6 @@
-package dev.pedro.rag.application.retrieval.ask.parsing
+package dev.pedro.rag.application.retrieval.ask.parsing.output
 
-import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions
 import org.junit.jupiter.api.Test
 
 class DefaultOutputParserTest {
@@ -20,8 +20,8 @@ class DefaultOutputParserTest {
 
         val result = sut.parse(raw)
 
-        assertThat(result.answer).isEqualTo("Veggie available and Pix accepted. [1][2]")
-        assertThat(result.citationNs).containsExactly(1, 2)
+        Assertions.assertThat(result.answer).isEqualTo("Veggie available and Pix accepted. [1][2]")
+        Assertions.assertThat(result.citationNs).containsExactly(1, 2)
     }
 
     @Test
@@ -35,8 +35,8 @@ class DefaultOutputParserTest {
 
         val result = sut.parse(raw)
 
-        assertThat(result.answer).isEqualTo("Only one chunk fits the budget.")
-        assertThat(result.citationNs).isEmpty()
+        Assertions.assertThat(result.answer).isEqualTo("Only one chunk fits the budget.")
+        Assertions.assertThat(result.citationNs).isEmpty()
     }
 
     @Test
@@ -54,7 +54,7 @@ class DefaultOutputParserTest {
 
         val result = sut.parse(raw)
 
-        assertThat(result.citationNs).containsExactly(3, 1, 2)
+        Assertions.assertThat(result.citationNs).containsExactly(3, 1, 2)
     }
 
     @Test
@@ -69,8 +69,8 @@ class DefaultOutputParserTest {
 
         val result = sut.parse(raw)
 
-        assertThat(result.answer).isEqualTo("Lowercase headers still work. [1]")
-        assertThat(result.citationNs).containsExactly(1)
+        Assertions.assertThat(result.answer).isEqualTo("Lowercase headers still work. [1]")
+        Assertions.assertThat(result.citationNs).containsExactly(1)
     }
 
     @Test
@@ -83,8 +83,8 @@ class DefaultOutputParserTest {
 
         val result = sutWithFallback.parse(raw)
 
-        assertThat(result.answer).contains("Model only cited inside the answer [1]")
-        assertThat(result.citationNs).containsExactly(1)
+        Assertions.assertThat(result.answer).contains("Model only cited inside the answer [1]")
+        Assertions.assertThat(result.citationNs).containsExactly(1)
     }
 
     @Test
@@ -93,8 +93,8 @@ class DefaultOutputParserTest {
 
         val result = sut.parse(raw)
 
-        assertThat(result.answer).isEqualTo("Just text without sections [1].")
-        assertThat(result.citationNs).isEmpty()
+        Assertions.assertThat(result.answer).isEqualTo("Just text without sections [1].")
+        Assertions.assertThat(result.citationNs).isEmpty()
     }
 
     @Test
@@ -106,8 +106,8 @@ class DefaultOutputParserTest {
 
         val result = sut.parse(raw)
 
-        assertThat(result.answer).contains("Only inside the answer [2].")
-        assertThat(result.citationNs).isEmpty()
+        Assertions.assertThat(result.answer).contains("Only inside the answer [2].")
+        Assertions.assertThat(result.citationNs).isEmpty()
     }
 
     @Test
@@ -126,6 +126,6 @@ class DefaultOutputParserTest {
 
         val result = sut.parse(raw)
 
-        assertThat(result.citationNs).containsExactly(2)
+        Assertions.assertThat(result.citationNs).containsExactly(2)
     }
 }
