@@ -10,6 +10,6 @@ internal fun SearchOutput.toContextSources(): List<ContextSource> =
             title = m.documentId.value,
             chunkIndex = i,
             text = m.chunk.text,
-            score = m.score
+            score = m.score,
         )
     }

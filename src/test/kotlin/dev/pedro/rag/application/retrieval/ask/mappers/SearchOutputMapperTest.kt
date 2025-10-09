@@ -7,30 +7,30 @@ import dev.pedro.rag.domain.retrieval.TextChunk
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 
-
 class SearchOutputMapperTest {
-
     @Test
     fun `should map matches to ContextSource preserving order and using fallbacks`() {
-        val output = SearchOutput(
-            matches = listOf(
-                SearchMatch(
-                    documentId = DocumentId("ze-menu-001"),
-                    chunk = TextChunk(text = "Tem opção vegetariana e aceita Pix."),
-                    score = 0.91
-                ),
-                SearchMatch(
-                    documentId = DocumentId("ze-promo-001"),
-                    chunk = TextChunk(text = "Terças: 2x1 no smash."),
-                    score = 0.84
-                ),
-                SearchMatch(
-                    documentId = DocumentId("ze-hours-001"),
-                    chunk = TextChunk(text = "Domingo 12:00–22:30."),
-                    score = 0.80
-                ),
+        val output =
+            SearchOutput(
+                matches =
+                    listOf(
+                        SearchMatch(
+                            documentId = DocumentId("ze-menu-001"),
+                            chunk = TextChunk(text = "Tem opção vegetariana e aceita Pix."),
+                            score = 0.91,
+                        ),
+                        SearchMatch(
+                            documentId = DocumentId("ze-promo-001"),
+                            chunk = TextChunk(text = "Terças: 2x1 no smash."),
+                            score = 0.84,
+                        ),
+                        SearchMatch(
+                            documentId = DocumentId("ze-hours-001"),
+                            chunk = TextChunk(text = "Domingo 12:00–22:30."),
+                            score = 0.80,
+                        ),
+                    ),
             )
-        )
 
         val result = output.toContextSources()
 
