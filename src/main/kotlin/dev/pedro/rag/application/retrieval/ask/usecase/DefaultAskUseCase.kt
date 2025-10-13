@@ -33,7 +33,6 @@ internal class DefaultAskUseCase(
     private val maxChunksPerDoc: Int = 2,
     private val budgetChars: Int = 3_000,
 ) : AskUseCase {
-
     override fun handle(input: AskInput): AskOutput {
         val pool = fetchPool(input)
         if (pool.isEmpty()) return noMatches(input.lang)
@@ -45,45 +44,58 @@ internal class DefaultAskUseCase(
     }
 
     private fun fetchPool(input: AskInput): List<ContextSource> {
-        val searchInput = SearchInput(
-            queryText = input.query,
-            topK = poolTopK,
-            filter = input.filter
-        )
+        val searchInput =
+            SearchInput(
+                queryText = input.query,
+                topK = poolTopK,
+                filter = input.filter,
+            )
         return runCatching { searchUseCase.search(searchInput).toContextSources() }.getOrElse { emptyList() }
     }
 
-    private fun selectSources(pool: List<ContextSource>, desiredTopK: Int): List<ContextSource> =
+    private fun selectSources(
+        pool: List<ContextSource>,
+        desiredTopK: Int,
+    ): List<ContextSource> =
         selector.select(
             sources = pool,
             topK = desiredTopK,
-            maxChunksPerDoc = maxChunksPerDoc
+            maxChunksPerDoc = maxChunksPerDoc,
         )
 
     private fun buildContext(selected: List<ContextSource>): BuiltContext =
         contextBuilder.build(
             sources = selected,
-            budgetChars = budgetChars
+            budgetChars = budgetChars,
         )
 
-    private fun completeWithLlm(built: BuiltContext, ask: AskInput): String? {
-        val prompt = promptBuilder.build(
-            context = built,
-            query = ask.query,
-            lang = ask.lang
-        )
-        return runCatching {
-            val llmInput = ChatInput(
-                messages = listOf(
-                    ChatMessage(ChatRole.SYSTEM, prompt.system),
-                    ChatMessage(ChatRole.USER, prompt.user)
-                )
+    private fun completeWithLlm(
+        built: BuiltContext,
+        ask: AskInput,
+    ): String? {
+        val prompt =
+            promptBuilder.build(
+                context = built,
+                query = ask.query,
+                lang = ask.lang,
             )
+        return runCatching {
+            val llmInput =
+                ChatInput(
+                    messages =
+                        listOf(
+                            ChatMessage(ChatRole.SYSTEM, prompt.system),
+                            ChatMessage(ChatRole.USER, prompt.user),
+                        ),
+                )
             chatPort.complete(llmInput).content
         }.getOrNull()
     }
 
-    private fun parseAndMap(raw: String, built: BuiltContext): AskOutput {
+    private fun parseAndMap(
+        raw: String,
+        built: BuiltContext,
+    ): AskOutput {
         val parsed = outputParser.parse(raw)
         val citations = citationMapper.map(parsed.citationNs, built)
         val notes = if (citations.isEmpty() && built.usedK > 0) "llm-no-citations" else null
@@ -91,32 +103,37 @@ internal class DefaultAskUseCase(
             answer = parsed.answer,
             citations = citations,
             usedK = built.usedK,
-            notes = notes
+            notes = notes,
         )
     }
 
-    private fun extractiveFallback(selected: List<ContextSource>, lang: String?): AskOutput {
+    private fun extractiveFallback(
+        selected: List<ContextSource>,
+        lang: String?,
+    ): AskOutput {
         if (selected.isEmpty()) return noMatches(lang)
         val take = min(2, selected.size)
         val excerpts = selected.take(take)
-        val answer = buildString {
-            excerpts.forEachIndexed { idx, src ->
-                if (idx > 0) appendLine().appendLine()
-                append("[${idx + 1}] ").append(src.text.trim())
+        val answer =
+            buildString {
+                excerpts.forEachIndexed { idx, src ->
+                    if (idx > 0) appendLine().appendLine()
+                    append("[${idx + 1}] ").append(src.text.trim())
+                }
             }
-        }
-        val citations = excerpts.map { src ->
-            Citation(
-                documentId = src.documentId,
-                title = src.title,
-                chunkIndex = src.chunkIndex
-            )
-        }
+        val citations =
+            excerpts.map { src ->
+                Citation(
+                    documentId = src.documentId,
+                    title = src.title,
+                    chunkIndex = src.chunkIndex,
+                )
+            }
         return AskOutput(
             answer = answer,
             citations = citations,
             usedK = take,
-            notes = "extractive-fallback"
+            notes = "extractive-fallback",
         )
     }
 
@@ -125,6 +142,6 @@ internal class DefaultAskUseCase(
             answer = askLocalization.noContext(lang),
             citations = emptyList(),
             usedK = 0,
-            notes = "no-matches"
+            notes = "no-matches",
         )
 }

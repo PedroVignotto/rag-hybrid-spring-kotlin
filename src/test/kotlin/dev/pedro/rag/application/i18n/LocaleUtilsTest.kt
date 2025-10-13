@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import java.util.Locale
 
 class LocaleUtilsTest {
-
     @Test
     fun `should resolve pt-BR for common variants`() {
         val a = resolvePtBrOrFallback("pt")

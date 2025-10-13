@@ -30,77 +30,91 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 
-
 @ExtendWith(MockKExtension::class)
 class DefaultAskUseCaseTest {
-
     @MockK lateinit var searchUseCase: SearchUseCase
+
     @MockK lateinit var selector: ContextSelector
+
     @MockK lateinit var contextBuilder: ContextBuilder
+
     @MockK lateinit var promptBuilder: PromptBuilder
+
     @MockK lateinit var chatPort: LlmChatPort
+
     @MockK lateinit var outputParser: OutputParser
+
     @MockK lateinit var citationMapper: CitationMapper
+
     @MockK lateinit var askLocalization: AskLocalization
 
-    private fun sut() = DefaultAskUseCase(
-        searchUseCase = searchUseCase,
-        selector = selector,
-        contextBuilder = contextBuilder,
-        promptBuilder = promptBuilder,
-        chatPort = chatPort,
-        outputParser = outputParser,
-        citationMapper = citationMapper,
-        askLocalization = askLocalization,
-        poolTopK = 12,
-        maxChunksPerDoc = 2,
-        budgetChars = 3_000
-    )
+    private fun sut() =
+        DefaultAskUseCase(
+            searchUseCase = searchUseCase,
+            selector = selector,
+            contextBuilder = contextBuilder,
+            promptBuilder = promptBuilder,
+            chatPort = chatPort,
+            outputParser = outputParser,
+            citationMapper = citationMapper,
+            askLocalization = askLocalization,
+            poolTopK = 12,
+            maxChunksPerDoc = 2,
+            budgetChars = 3_000,
+        )
 
     @Test
     fun `happy path returns parsed answer and mapped citations`() {
-        every { searchUseCase.search(any<SearchInput>()) } returns SearchOutput(
-            matches = listOf(
-                match("ze-menu-001", "Tem opção vegetariana e aceita Pix.", 0.91),
-                match("ze-promo-001", "Terças 2x1 no smash.", 0.84),
-                match("ze-hours-001", "Domingo 12:00–22:30.", 0.80),
+        every { searchUseCase.search(any<SearchInput>()) } returns
+            SearchOutput(
+                matches =
+                    listOf(
+                        match("ze-menu-001", "Tem opção vegetariana e aceita Pix.", 0.91),
+                        match("ze-promo-001", "Terças 2x1 no smash.", 0.84),
+                        match("ze-hours-001", "Domingo 12:00–22:30.", 0.80),
+                    ),
             )
-        )
-        val selected = listOf(
-            src("ze-menu-001", "ze-menu-001", 0, "Tem opção vegetariana e aceita Pix.", 0.91),
-            src("ze-promo-001", "ze-promo-001", 1, "Terças 2x1 no smash.", 0.84),
-        )
+        val selected =
+            listOf(
+                src("ze-menu-001", "ze-menu-001", 0, "Tem opção vegetariana e aceita Pix.", 0.91),
+                src("ze-promo-001", "ze-promo-001", 1, "Terças 2x1 no smash.", 0.84),
+            )
         every { selector.select(any(), topK = 10, maxChunksPerDoc = 2) } returns selected
-        val built = BuiltContext(
-            text = "[1] Tem opção vegetariana e aceita Pix.\n\n[2] Terças 2x1 no smash.",
-            index = listOf(
-                CitationIndex(1, "ze-menu-001", "ze-menu-001", 0),
-                CitationIndex(2, "ze-promo-001", "ze-promo-001", 1),
-            ),
-            usedK = 2,
-            truncated = false
-        )
+        val built =
+            BuiltContext(
+                text = "[1] Tem opção vegetariana e aceita Pix.\n\n[2] Terças 2x1 no smash.",
+                index =
+                    listOf(
+                        CitationIndex(1, "ze-menu-001", "ze-menu-001", 0),
+                        CitationIndex(2, "ze-promo-001", "ze-promo-001", 1),
+                    ),
+                usedK = 2,
+                truncated = false,
+            )
         every { contextBuilder.build(selected, 3_000) } returns built
         every { promptBuilder.build(built, "tem veggie? promoção", "pt-BR") } returns
-                PromptPayload(system = "SYS", user = "USER")
-        every { chatPort.complete(any<ChatInput>()) } returns ChatOutput(
-            """
-            ANSWER:
-            Sim, há veggie e promoção. [1][2]
-            
-            CITATIONS:
-            [1] ze-menu-001#chunk0
-            [2] ze-promo-001#chunk1
-            """.trimIndent()
-        )
-        every { outputParser.parse(any()) } returns ParsedOutput(
-            answer = "Sim, há veggie e promoção. [1][2]",
-            citationNs = listOf(1, 2)
-        )
-        every { citationMapper.map(listOf(1, 2), built) } returns listOf(
-            Citation("ze-menu-001", "ze-menu-001", 0),
-            Citation("ze-promo-001", "ze-promo-001", 1),
-        )
+            PromptPayload(system = "SYS", user = "USER")
+        every { chatPort.complete(any<ChatInput>()) } returns
+            ChatOutput(
+                """
+                ANSWER:
+                Sim, há veggie e promoção. [1][2]
+                
+                CITATIONS:
+                [1] ze-menu-001#chunk0
+                [2] ze-promo-001#chunk1
+                """.trimIndent(),
+            )
+        every { outputParser.parse(any()) } returns
+            ParsedOutput(
+                answer = "Sim, há veggie e promoção. [1][2]",
+                citationNs = listOf(1, 2),
+            )
+        every { citationMapper.map(listOf(1, 2), built) } returns
+            listOf(
+                Citation("ze-menu-001", "ze-menu-001", 0),
+                Citation("ze-promo-001", "ze-promo-001", 1),
+            )
 
         val result = sut().handle(AskInput(query = "tem veggie? promoção", topK = 10, filter = emptyMap(), lang = "pt-BR"))
 
@@ -136,26 +150,31 @@ class DefaultAskUseCaseTest {
 
     @Test
     fun `falls back to extractive when llm returns blank`() {
-        every { searchUseCase.search(any<SearchInput>()) } returns SearchOutput(
-            matches = listOf(
-                match("ze-menu-001", "Tem opção vegetariana e aceita Pix.", 0.91),
-                match("ze-promo-001", "Terças 2x1 no smash.", 0.84),
+        every { searchUseCase.search(any<SearchInput>()) } returns
+            SearchOutput(
+                matches =
+                    listOf(
+                        match("ze-menu-001", "Tem opção vegetariana e aceita Pix.", 0.91),
+                        match("ze-promo-001", "Terças 2x1 no smash.", 0.84),
+                    ),
             )
-        )
-        val selected = listOf(
-            src("ze-menu-001", "ze-menu-001", 0, "Tem opção vegetariana e aceita Pix.", 0.91),
-            src("ze-promo-001", "ze-promo-001", 1, "Terças 2x1 no smash.", 0.84),
-        )
+        val selected =
+            listOf(
+                src("ze-menu-001", "ze-menu-001", 0, "Tem opção vegetariana e aceita Pix.", 0.91),
+                src("ze-promo-001", "ze-promo-001", 1, "Terças 2x1 no smash.", 0.84),
+            )
         every { selector.select(any(), topK = 10, maxChunksPerDoc = 2) } returns selected
-        every { contextBuilder.build(selected, 3_000) } returns BuiltContext(
-            text = "[1] Tem opção vegetariana e aceita Pix.\n\n[2] Terças 2x1 no smash.",
-            index = listOf(
-                CitationIndex(1, "ze-menu-001", "ze-menu-001", 0),
-                CitationIndex(2, "ze-promo-001", "ze-promo-001", 1),
-            ),
-            usedK = 2,
-            truncated = false
-        )
+        every { contextBuilder.build(selected, 3_000) } returns
+            BuiltContext(
+                text = "[1] Tem opção vegetariana e aceita Pix.\n\n[2] Terças 2x1 no smash.",
+                index =
+                    listOf(
+                        CitationIndex(1, "ze-menu-001", "ze-menu-001", 0),
+                        CitationIndex(2, "ze-promo-001", "ze-promo-001", 1),
+                    ),
+                usedK = 2,
+                truncated = false,
+            )
         every { promptBuilder.build(any(), any(), any()) } returns PromptPayload("S", "U")
         every { chatPort.complete(any()) } returns ChatOutput("")
 
@@ -170,17 +189,19 @@ class DefaultAskUseCaseTest {
 
     @Test
     fun `sets llm-no-citations note when parser returns empty Ns but context existed`() {
-        every { searchUseCase.search(any<SearchInput>()) } returns SearchOutput(
-            matches = listOf(match("ze-menu-001", "Tem opção vegetariana e aceita Pix.", 0.91))
-        )
+        every { searchUseCase.search(any<SearchInput>()) } returns
+            SearchOutput(
+                matches = listOf(match("ze-menu-001", "Tem opção vegetariana e aceita Pix.", 0.91)),
+            )
         val selected = listOf(src("ze-menu-001", "ze-menu-001", 0, "Tem opção vegetariana e aceita Pix.", 0.91))
         every { selector.select(any(), topK = 10, maxChunksPerDoc = 2) } returns selected
-        val built = BuiltContext(
-            text = "[1] Tem opção vegetariana e aceita Pix.",
-            index = listOf(CitationIndex(1, "ze-menu-001", "ze-menu-001", 0)),
-            usedK = 1,
-            truncated = false
-        )
+        val built =
+            BuiltContext(
+                text = "[1] Tem opção vegetariana e aceita Pix.",
+                index = listOf(CitationIndex(1, "ze-menu-001", "ze-menu-001", 0)),
+                usedK = 1,
+                truncated = false,
+            )
         every { contextBuilder.build(selected, 3_000) } returns built
         every { promptBuilder.build(any(), any(), any()) } returns PromptPayload("S", "U")
         every { chatPort.complete(any()) } returns ChatOutput("ANSWER:\nSim.\n\nCITATIONS:\n")
@@ -216,26 +237,31 @@ class DefaultAskUseCaseTest {
 
     @Test
     fun `falls back to extractive when llm throws exception`() {
-        every { searchUseCase.search(any<SearchInput>()) } returns SearchOutput(
-            matches = listOf(
-                match("ze-menu-001", "Tem opção vegetariana e aceita Pix.", 0.91),
-                match("ze-promo-001", "Terças 2x1 no smash.", 0.84),
+        every { searchUseCase.search(any<SearchInput>()) } returns
+            SearchOutput(
+                matches =
+                    listOf(
+                        match("ze-menu-001", "Tem opção vegetariana e aceita Pix.", 0.91),
+                        match("ze-promo-001", "Terças 2x1 no smash.", 0.84),
+                    ),
             )
-        )
-        val selected = listOf(
-            src("ze-menu-001", "ze-menu-001", 0, "Tem opção vegetariana e aceita Pix.", 0.91),
-            src("ze-promo-001", "ze-promo-001", 1, "Terças 2x1 no smash.", 0.84),
-        )
+        val selected =
+            listOf(
+                src("ze-menu-001", "ze-menu-001", 0, "Tem opção vegetariana e aceita Pix.", 0.91),
+                src("ze-promo-001", "ze-promo-001", 1, "Terças 2x1 no smash.", 0.84),
+            )
         every { selector.select(any(), topK = 10, maxChunksPerDoc = 2) } returns selected
-        every { contextBuilder.build(selected, 3_000) } returns BuiltContext(
-            text = "[1] A\n\n[2] B",
-            index = listOf(
-                CitationIndex(1, "ze-menu-001", "ze-menu-001", 0),
-                CitationIndex(2, "ze-promo-001", "ze-promo-001", 1),
-            ),
-            usedK = 2,
-            truncated = false
-        )
+        every { contextBuilder.build(selected, 3_000) } returns
+            BuiltContext(
+                text = "[1] A\n\n[2] B",
+                index =
+                    listOf(
+                        CitationIndex(1, "ze-menu-001", "ze-menu-001", 0),
+                        CitationIndex(2, "ze-promo-001", "ze-promo-001", 1),
+                    ),
+                usedK = 2,
+                truncated = false,
+            )
         every { promptBuilder.build(any(), any(), any()) } returns PromptPayload("S", "U")
         every { chatPort.complete(any()) } throws RuntimeException("llm down")
 
@@ -250,16 +276,18 @@ class DefaultAskUseCaseTest {
 
     @Test
     fun `notes is null when no citations and usedK equals 0`() {
-        every { searchUseCase.search(any<SearchInput>()) } returns SearchOutput(
-            matches = listOf(match("ze-menu-001", "x", 0.9))
-        )
+        every { searchUseCase.search(any<SearchInput>()) } returns
+            SearchOutput(
+                matches = listOf(match("ze-menu-001", "x", 0.9)),
+            )
         every { selector.select(any(), topK = 10, maxChunksPerDoc = 2) } returns emptyList()
-        every { contextBuilder.build(emptyList(), 3_000) } returns BuiltContext(
-            text = "",
-            index = emptyList(),
-            usedK = 0,
-            truncated = false
-        )
+        every { contextBuilder.build(emptyList(), 3_000) } returns
+            BuiltContext(
+                text = "",
+                index = emptyList(),
+                usedK = 0,
+                truncated = false,
+            )
         every { promptBuilder.build(any(), any(), any()) } returns PromptPayload("S", "U")
         every { chatPort.complete(any()) } returns ChatOutput("ANSWER:\nOk\n\nCITATIONS:\n")
         every { outputParser.parse(any()) } returns ParsedOutput(answer = "Ok", citationNs = emptyList())
@@ -275,9 +303,10 @@ class DefaultAskUseCaseTest {
 
     @Test
     fun `llm blank with selected empty returns no-matches`() {
-        every { searchUseCase.search(any<SearchInput>()) } returns SearchOutput(
-            matches = listOf(match("ze-menu-001", "x", 0.9))
-        )
+        every { searchUseCase.search(any<SearchInput>()) } returns
+            SearchOutput(
+                matches = listOf(match("ze-menu-001", "x", 0.9)),
+            )
         every { selector.select(any(), topK = 10, maxChunksPerDoc = 2) } returns emptyList()
         every { contextBuilder.build(emptyList(), 3_000) } returns BuiltContext("", emptyList(), 0, false)
         every { promptBuilder.build(any(), any(), any()) } returns PromptPayload("S", "U")
@@ -292,9 +321,17 @@ class DefaultAskUseCaseTest {
         assertThat(result.notes).isEqualTo("no-matches")
     }
 
-    private fun match(id: String, text: String, score: Double) =
-        SearchMatch(documentId = DocumentId(id), chunk = TextChunk(text), score = score)
+    private fun match(
+        id: String,
+        text: String,
+        score: Double,
+    ) = SearchMatch(documentId = DocumentId(id), chunk = TextChunk(text), score = score)
 
-    private fun src(doc: String, title: String, idx: Int, text: String, score: Double) =
-        ContextSource(documentId = doc, title = title, chunkIndex = idx, text = text, score = score)
+    private fun src(
+        doc: String,
+        title: String,
+        idx: Int,
+        text: String,
+        score: Double,
+    ) = ContextSource(documentId = doc, title = title, chunkIndex = idx, text = text, score = score)
 }
