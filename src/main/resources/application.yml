@@ -1,6 +1,10 @@
 spring:
   application:
     name: rag-hybrid-spring-kotlin
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
 
 llm:
   http:
@@ -57,16 +61,25 @@ retrieval:
         - "nas"
         - "um"
         - "uma"
-    fusion:
-      alpha: 0.5
-    dedup:
-      strict-enabled: true
-      soft:
-        enabled: true
-        overlap-threshold: 0.75
-    mmr:
+  fusion:
+    alpha: 0.5
+  dedup:
+    strict-enabled: true
+    soft:
       enabled: true
-      lambda: 0.3
+      overlap-threshold: 0.75
+  mmr:
+    enabled: true
+    lambda: 0.3
+  ask:
+    contextBudgetChars: 3000
+    poolK: 12
+    maxChunksPerDoc: 2
+    language:
+      autoDetect: true
+    prompt:
+      requireCitations: true
+      requireAdmitUnknown: true
 
 management:
   endpoints:
@@ -111,3 +124,7 @@ guardrails:
         capacity: 2
         refill: 2
         period: 60s
+      "/v1/retrieval/ask":
+        capacity: 6
+        refill: 6
+        period: 10s

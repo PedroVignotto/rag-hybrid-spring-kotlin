@@ -1,6 +1,10 @@
 spring:
   application:
     name: rag-hybrid-spring-kotlin-tests
+  messages:
+    basename: messages
+    encoding: UTF-8
+    fallback-to-system-locale: false
 
 springdoc:
   api-docs:
@@ -36,16 +40,25 @@ retrieval:
       length-normalization: 0.75
       stop-words-enabled: false
       stop-words: [ ]
-    fusion:
-      alpha: 0.5
-    dedup:
-      strict-enabled: true
-      soft:
-        enabled: true
-        overlap-threshold: 0.75
-    mmr:
-      enabled: false
-      lambda: 0.3
+  fusion:
+    alpha: 0.5
+  dedup:
+    strict-enabled: true
+    soft:
+      enabled: true
+      overlap-threshold: 0.75
+  mmr:
+    enabled: false
+    lambda: 0.3
+  ask:
+    contextBudgetChars: 1000
+    poolK: 8
+    maxChunksPerDoc: 2
+    language:
+      autoDetect: true
+    prompt:
+      requireCitations: true
+      requireAdmitUnknown: true
 
 guardrails:
   rate-limit:
