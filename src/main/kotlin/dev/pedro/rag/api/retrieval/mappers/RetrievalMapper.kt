@@ -1,11 +1,15 @@
 package dev.pedro.rag.api.retrieval.mappers
 
+import dev.pedro.rag.api.retrieval.request.AskRequest
 import dev.pedro.rag.api.retrieval.request.IngestRequest
 import dev.pedro.rag.api.retrieval.request.SearchRequest
+import dev.pedro.rag.api.retrieval.response.AskResponse
 import dev.pedro.rag.api.retrieval.response.DeleteResponse
 import dev.pedro.rag.api.retrieval.response.IngestResponse
 import dev.pedro.rag.api.retrieval.response.SearchMatchResponse
 import dev.pedro.rag.api.retrieval.response.SearchResponse
+import dev.pedro.rag.application.retrieval.ask.dto.AskInput
+import dev.pedro.rag.application.retrieval.ask.dto.AskOutput
 import dev.pedro.rag.application.retrieval.delete.dto.DeleteOutput
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestInput
 import dev.pedro.rag.application.retrieval.ingest.dto.IngestOutput
@@ -47,3 +51,26 @@ fun SearchMatch.toResponse(): SearchMatchResponse =
     )
 
 fun DeleteOutput.toResponse(): DeleteResponse = DeleteResponse(deleted = deleted)
+
+fun AskRequest.toInput(): AskInput =
+    AskInput(
+        query = this.query,
+        topK = this.topK,
+        filter = this.filter,
+        lang = this.lang,
+    )
+
+fun AskOutput.toResponse(): AskResponse =
+    AskResponse(
+        answer = this.answer,
+        citations =
+            this.citations.map { c ->
+                AskResponse.Citation(
+                    documentId = c.documentId,
+                    title = c.title,
+                    chunkIndex = c.chunkIndex,
+                )
+            },
+        usedK = this.usedK,
+        notes = this.notes,
+    )
