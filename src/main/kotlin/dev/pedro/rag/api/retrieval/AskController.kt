@@ -5,6 +5,7 @@ import dev.pedro.rag.api.retrieval.mappers.toResponse
 import dev.pedro.rag.api.retrieval.request.AskRequest
 import dev.pedro.rag.api.retrieval.response.AskResponse
 import dev.pedro.rag.application.retrieval.ask.usecase.AskUseCase
+import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
 import org.springframework.http.MediaType
 import org.springframework.validation.annotation.Validated
@@ -23,6 +24,15 @@ class AskController(
     private val askUseCase: AskUseCase,
 ) {
     @PostMapping(consumes = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        summary = "RAG ask (hybrid search + LLM with citations)",
+        description = """
+            Runs hybrid search (vector + BM25), builds a context (topK with per-doc cap),
+            asks the LLM, and returns an answer with citations.
+            Optional 'filter' narrows by chunk metadata (e.g. {"store":"hq"}).
+            'usedK' is the number of chunks used; 'notes' may be "no-matches", "llm-no-citations", or "extractive-fallback".
+        """
+    )
     fun ask(
         @Valid @RequestBody request: AskRequest,
     ): AskResponse = askUseCase.handle(request.toInput()).toResponse()
