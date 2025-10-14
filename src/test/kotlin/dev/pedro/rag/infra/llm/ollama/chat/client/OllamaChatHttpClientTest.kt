@@ -95,7 +95,7 @@ class OllamaChatHttpClientTest {
         assertThat(json["messages"][0]["content"].asText()).isEqualTo("hi")
         assertThat(json["options"]["top_p"].asDouble()).isEqualTo(0.9)
         assertThat(json["options"]["num_predict"].asInt()).isEqualTo(32)
-        assertThat(json["stream"]).isNull()
+        assertThat(json["stream"].asBoolean()).isFalse
     }
 
     @Test

@@ -21,7 +21,7 @@ class OllamaChatHttpClient(
         OllamaHttpSupport.endpoint(properties.baseUrl, "/api/chat")
 
     fun chat(payload: OllamaChatRequest): OllamaChatResponse {
-        val jsonBody = serializeEffectiveRequestJson(payload, forceStream = null)
+        val jsonBody = serializeEffectiveRequestJson(payload, forceStream = false)
         val request = OllamaHttpSupport.buildJsonPost(endpoint, properties.requestTimeout, jsonBody)
         val response = OllamaHttpSupport.sendForStringAndEnsureSuccess(http, request)
         return parseAndValidateChatResponseString(response.body())
