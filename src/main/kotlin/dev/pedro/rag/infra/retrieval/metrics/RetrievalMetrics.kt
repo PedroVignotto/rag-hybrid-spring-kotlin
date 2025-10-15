@@ -37,6 +37,7 @@ class RetrievalMetrics(
         const val OP_INGEST = "ingest"
         const val OP_SEARCH = "search"
         const val OP_DELETE = "delete"
+        const val OP_ASK = "ask"
     }
 
     private val storeGauges = ConcurrentHashMap<List<String>, AtomicLong>()
