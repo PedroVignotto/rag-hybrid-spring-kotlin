@@ -17,10 +17,15 @@ import dev.pedro.rag.application.retrieval.ask.selection.ContextSelector
 import dev.pedro.rag.application.retrieval.ask.selection.RoundRobinPerDocSelector
 import dev.pedro.rag.application.retrieval.ask.usecase.AskUseCase
 import dev.pedro.rag.application.retrieval.ask.usecase.DefaultAskUseCase
+import dev.pedro.rag.application.retrieval.ports.EmbedPort
 import dev.pedro.rag.application.retrieval.search.usecase.SearchUseCase
+import dev.pedro.rag.infra.retrieval.metrics.MetricsAskUseCase
+import dev.pedro.rag.infra.retrieval.metrics.RetrievalMetrics
+import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.context.MessageSource
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Primary
 
 @Configuration
 class RetrievalAskConfig {
@@ -48,8 +53,8 @@ class RetrievalAskConfig {
 
     @Bean fun citationMapper(): CitationMapper = DefaultCitationMapper()
 
-    @Bean
-    fun askUseCase(
+    @Bean("askUseCaseCore")
+    fun askUseCaseCore(
         searchUseCase: SearchUseCase,
         selector: ContextSelector,
         contextBuilder: ContextBuilder,
@@ -72,5 +77,18 @@ class RetrievalAskConfig {
             poolTopK = props.poolK,
             maxChunksPerDoc = props.maxChunksPerDoc,
             budgetChars = props.contextBudgetChars,
+        )
+
+    @Bean
+    @Primary
+    fun askUseCase(
+        @Qualifier("askUseCaseCore") core: AskUseCase,
+        metrics: RetrievalMetrics,
+        embedPort: EmbedPort,
+    ): AskUseCase =
+        MetricsAskUseCase(
+            delegate = core,
+            metrics = metrics,
+            embedPort = embedPort,
         )
 }
