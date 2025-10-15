@@ -54,10 +54,11 @@ class MetricsAskUseCaseTest(
     @Test
     fun `should delegate ask, record latency success, k and hits`() {
         val input = AskInput(query = "What time do you open?", topK = 5, filter = mapOf("store" to "hq"))
-        val citations = listOf(
-            Citation(documentId = "doc-1", title = "Menu", chunkIndex = 0),
-            Citation(documentId = "doc-2", title = "Hours", chunkIndex = 1),
-        )
+        val citations =
+            listOf(
+                Citation(documentId = "doc-1", title = "Menu", chunkIndex = 0),
+                Citation(documentId = "doc-2", title = "Hours", chunkIndex = 1),
+            )
         val output = AskOutput(answer = "We open at 9am.", citations = citations, usedK = 4, notes = null)
         every { delegate.handle(input) } returns output
 
@@ -81,10 +82,14 @@ class MetricsAskUseCaseTest(
         val kSummary =
             registry.find(METRIC_K)
                 .tags(
-                    TAG_PROVIDER, spec.provider,
-                    TAG_MODEL, spec.model,
-                    TAG_DIM, spec.dim.toString(),
-                    TAG_NORMALIZED, spec.normalized.toString(),
+                    TAG_PROVIDER,
+                    spec.provider,
+                    TAG_MODEL,
+                    spec.model,
+                    TAG_DIM,
+                    spec.dim.toString(),
+                    TAG_NORMALIZED,
+                    spec.normalized.toString(),
                 )
                 .summary()
         assertThat(kSummary).isNotNull
@@ -92,10 +97,14 @@ class MetricsAskUseCaseTest(
         val hitsSummary =
             registry.find(METRIC_HITS)
                 .tags(
-                    TAG_PROVIDER, spec.provider,
-                    TAG_MODEL, spec.model,
-                    TAG_DIM, spec.dim.toString(),
-                    TAG_NORMALIZED, spec.normalized.toString(),
+                    TAG_PROVIDER,
+                    spec.provider,
+                    TAG_MODEL,
+                    spec.model,
+                    TAG_DIM,
+                    spec.dim.toString(),
+                    TAG_NORMALIZED,
+                    spec.normalized.toString(),
                 )
                 .summary()
         assertThat(hitsSummary).isNotNull

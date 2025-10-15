@@ -13,7 +13,6 @@ class MetricsAskUseCase(
     private val metrics: RetrievalMetrics,
     private val embedPort: EmbedPort,
 ) : AskUseCase {
-
     override fun handle(input: AskInput): AskOutput {
         val spec = embedPort.spec()
         val start = System.nanoTime()
@@ -21,20 +20,20 @@ class MetricsAskUseCase(
 
         try {
             val out = delegate.handle(input)
-             metrics.recordK(
-                 provider = spec.provider,
-                 model = spec.model,
-                 dim = spec.dim,
-                 normalized = spec.normalized,
-                 k = out.usedK,
-             )
-             metrics.recordHits(
-                 provider = spec.provider,
-                 model = spec.model,
-                 dim = spec.dim,
-                 normalized = spec.normalized,
-                 hits = out.citations.size,
-             )
+            metrics.recordK(
+                provider = spec.provider,
+                model = spec.model,
+                dim = spec.dim,
+                normalized = spec.normalized,
+                k = out.usedK,
+            )
+            metrics.recordHits(
+                provider = spec.provider,
+                model = spec.model,
+                dim = spec.dim,
+                normalized = spec.normalized,
+                hits = out.citations.size,
+            )
             return out
         } catch (ex: Exception) {
             status = STATUS_ERROR

@@ -31,7 +31,7 @@ class AskController(
             asks the LLM, and returns an answer with citations.
             Optional 'filter' narrows by chunk metadata (e.g. {"store":"hq"}).
             'usedK' is the number of chunks used; 'notes' may be "no-matches", "llm-no-citations", or "extractive-fallback".
-        """
+        """,
     )
     fun ask(
         @Valid @RequestBody request: AskRequest,
